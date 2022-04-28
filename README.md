@@ -11,7 +11,7 @@ TheLootBox local Ethereum account creation and contract interaction client that 
 
 ### Preview screenshot
 
-![TheLootBoxClient](.static/images/TheLootBoxClient.png)
+![TheLootBoxClient](./static/images/TheLootBoxClient.png)
 
 ### Supporting development
 
