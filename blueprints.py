@@ -1,0 +1,160 @@
+import json
+import os
+from datetime import datetime
+
+from cryptography.fernet import Fernet
+from flask import Blueprint, render_template, request, flash
+
+from app.networks import (
+    web3_arbitrum_rinkeby
+)
+from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm
+
+index_blueprint = Blueprint('index_blueprint', __name__)
+create_lootbundle_blueprint = Blueprint('create_lootbundle_blueprint', __name__)
+create_account_blueprint = Blueprint('create_account_blueprint', __name__)
+account_blueprint = Blueprint('account_blueprint', __name__)
+send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
+send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
+
+year = str(datetime.now().year)
+
+accounts_list = []
+
+web3_arbitrum_rinkeby.eth.account.enable_unaudited_hdwallet_features()
+
+unlocked = False
+
+gas_price = web3_arbitrum_rinkeby.eth.gasPrice
+
+@index_blueprint.route('/', methods=['GET'])
+def index():
+    if request.method == 'GET':
+        if not os.path.exists("accounts.json"):
+            form = CreateAccountForm()
+            return render_template('create.html', account="new", form=form, year=year)
+        if os.path.exists("accounts.json") and unlocked == False:
+            form = UnlockAccountForm()
+            return render_template('unlock.html', account="current", form=form, year=year)
+        if os.path.exists("accounts.json") and unlocked == True:
+            form = AccountForm()
+            return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
+                                   private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], form=form)
+
+
+@create_account_blueprint.route('/create', methods=['GET', 'POST'])
+def create_account():
+    form = CreateAccountForm()
+    if request.method == 'GET':
+        return render_template('create.html', form=form)
+    if request.method == 'POST':
+        new_eth_account, mnemonic = web3_arbitrum_rinkeby.eth.account.create_with_mnemonic()
+        wallet_key = Fernet.generate_key().decode("utf-8")
+        mnemonic_field_value = request.form.get('create_from_mnemonic')
+        if mnemonic_field_value:
+            print(mnemonic_field_value)
+        else:
+            pub_address = new_eth_account.address
+            mnemonic_phrase = mnemonic
+            private_key = new_eth_account.key.hex()
+            create_account_callback(new_eth_account, mnemonic, wallet_key)
+            return render_template('account.html', account="new", pub_address=pub_address, private_key=private_key,
+                                   mnemonic_phrase=mnemonic_phrase, wallet_key=wallet_key, form=form)
+
+
+def create_account_callback(new_eth_account, mnemonic, wallet_key):
+    if not os.path.exists("accounts.json"):
+        no_plaintext = Fernet(wallet_key)
+        mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic, encoding='utf8'))
+        pub_address = new_eth_account.address
+        private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
+
+        save_account_info(pub_address, mnemonic_phrase, private_key)
+    else:
+        print("Account already exists!!!")
+
+
+def save_account_info(decrypt_pub_address, mnemonic_phrase, private_key):
+    account = {'number': int(0), 'public_address': decrypt_pub_address,
+               'private_key': str(private_key.decode("utf-8")),
+               'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
+    accounts_list.append(account)
+
+    json.dump(accounts_list, open('accounts.json', 'w'))
+
+
+@account_blueprint.route('/account', methods=['GET', 'POST'])
+def account():
+    if request.method == 'POST':
+        form = AccountForm()
+        account_unlock_key = request.form['account_unlock_key']
+        no_plaintext = Fernet(account_unlock_key)
+        with open('accounts.json', 'r') as accounts_from_file:
+            account_data_json = json.load(accounts_from_file)
+            pub_address = account_data_json[int(0)]['public_address']
+            decrypt_private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
+            decrypt_mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+            accounts_list.append(pub_address)
+            accounts_list.append(decrypt_private_key)
+            accounts_list.append(decrypt_mnemonic_phrase)
+            global unlocked
+            unlocked = True
+        return render_template('account.html', account="unlocked", pub_address=pub_address,
+                                   private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase, form=form)   
+    if request.method == 'GET':
+        # global unlocked
+        if unlocked == False:
+            form = UnlockAccountForm()
+            with open('accounts.json', 'r') as accounts_from_file:
+                account_data_json = json.load(accounts_from_file)
+                pub_address = account_data_json[int(0)]['public_address']
+                private_key = account_data_json[int(0)]['private_key']
+                mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
+            return render_template('unlock.html', account="current", pub_address=pub_address,
+                            private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+        if unlocked == True:
+            form = AccountForm()
+            return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
+                                   private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], form=form)
+
+
+@send_ether_blueprint.route('/send', methods=['GET', 'POST'])
+def send():
+        global unlocked
+        if request.method == 'GET':
+            if unlocked == False:
+                form = UnlockAccountForm()
+                with open('accounts.json', 'r') as accounts_from_file:
+                    account_data_json = json.load(accounts_from_file)
+                    pub_address = account_data_json[int(0)]['public_address']
+                    private_key = account_data_json[int(0)]['private_key']
+                    mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
+                return render_template('unlock.html', account="current", pub_address=pub_address,
+                        private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+            if unlocked == True:
+                form = SendEtherForm()
+                return render_template('send.html', account="unlocked", form=form)
+
+
+@send_transaction_blueprint.route('/send_transaction', methods=['POST'])
+def send_transaction():
+        if request.method == 'POST':
+            if unlocked == True:
+                to_account = request.form['to_public_address']
+                amount = request.form['amount_of_ether']
+                try:
+                    tx = {
+                        'nonce': web3_arbitrum_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'),
+                        'to': to_account,
+                        'value': web3_arbitrum_rinkeby.toWei(amount, 'ether'),
+                        'gas': web3_arbitrum_rinkeby.toWei('0.02', 'gwei'),
+                        'gasPrice': gas_price,
+                        'from': accounts_list[0]
+                    }
+                    sign = web3_arbitrum_rinkeby.eth.account.sign_transaction(tx, accounts_list[1])
+                    web3_arbitrum_rinkeby.eth.send_raw_transaction(sign.rawTransaction)
+                    flash('Transaction sent successfully!', 'success')
+                except Exception as e:
+                    flash(e, 'warning')
+            return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
+                                   private_key=accounts_list[1], mnemonic_phrase=accounts_list[2])
