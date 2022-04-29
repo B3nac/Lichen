@@ -4,6 +4,11 @@ from wtforms.csrf.session import SessionCSRF
 from wtforms import StringField, SubmitField, validators, BooleanField
 import os
 from datetime import timedelta
+import string
+import secrets
+
+alphabet = string.ascii_letters + string.digits
+random = ''.join(secrets.choice(alphabet) for i in range(15))
 
 
 class CreateAccountForm(FlaskForm):
@@ -13,7 +18,7 @@ class CreateAccountForm(FlaskForm):
     class Meta:
         csrf = True
         csrf_class = SessionCSRF
-        csrf_secret = os.environ.get('CSRF_SECRET').encode()
+        csrf_secret = random.encode()
         csrf_time_limit = timedelta(minutes=20)
 
         @property
@@ -27,7 +32,7 @@ class AccountForm(FlaskForm):
     class Meta:
         csrf = True
         csrf_class = SessionCSRF
-        csrf_secret = os.environ.get('CSRF_SECRET').encode()
+        csrf_secret = random.encode()
         csrf_time_limit = timedelta(minutes=20)
 
         @property
@@ -41,7 +46,7 @@ class UnlockAccountForm(FlaskForm):
     class Meta:
         csrf = True
         csrf_class = SessionCSRF
-        csrf_secret = os.environ.get('CSRF_SECRET').encode()
+        csrf_secret = random.encode()
         csrf_time_limit = timedelta(minutes=20)
 
         @property
@@ -56,7 +61,7 @@ class SendEtherForm(FlaskForm):
     class Meta:
         csrf = True
         csrf_class = SessionCSRF
-        csrf_secret = os.environ.get('CSRF_SECRET').encode()
+        csrf_secret = random.encode()
         csrf_time_limit = timedelta(minutes=20)
 
         @property
