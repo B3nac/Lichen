@@ -6,9 +6,12 @@ from cryptography.fernet import Fernet
 from flask import Blueprint, render_template, request, flash
 
 from app.networks import (
-    web3_arbitrum_rinkeby
+    web3_arbitrum_rinkeby,
+    dai_contract_rinkeby,
+    web3_local_rinkeby,
+    lootbox_contract_arbitrum_bundle
 )
-from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm
+from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm, CreateLootBundleForm
 
 index_blueprint = Blueprint('index_blueprint', __name__)
 create_lootbundle_blueprint = Blueprint('create_lootbundle_blueprint', __name__)
@@ -16,6 +19,7 @@ create_account_blueprint = Blueprint('create_account_blueprint', __name__)
 account_blueprint = Blueprint('account_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
+send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
 
 year = str(datetime.now().year)
 
@@ -118,7 +122,7 @@ def account():
                                    private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], form=form)
 
 
-@send_ether_blueprint.route('/send', methods=['GET', 'POST'])
+@send_ether_blueprint.route('/send', methods=['GET'])
 def send():
         global unlocked
         if request.method == 'GET':
@@ -134,6 +138,9 @@ def send():
             if unlocked == True:
                 form = SendEtherForm()
                 return render_template('send.html', account="unlocked", form=form)
+
+
+### Create LootBundle route here
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
@@ -158,3 +165,47 @@ def send_transaction():
                     flash(e, 'warning')
             return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
                                    private_key=accounts_list[1], mnemonic_phrase=accounts_list[2])
+
+@create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
+def create():
+        global unlocked
+        if request.method == 'GET':
+            if unlocked == False:
+                form = UnlockAccountForm()
+                with open('accounts.json', 'r') as accounts_from_file:
+                    account_data_json = json.load(accounts_from_file)
+                    pub_address = account_data_json[int(0)]['public_address']
+                    private_key = account_data_json[int(0)]['private_key']
+                    mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
+                return render_template('unlock.html', account="current", pub_address=pub_address,
+                        private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+            if unlocked == True:
+                form = CreateLootBundleForm()
+                return render_template('createlootbundle.html', account="unlocked", form=form)
+
+@send_lootbundle_blueprint.route('/send_lootbundle_transaction', methods=['POST'])
+def send_lootbundle_transaction():
+    if request.method == 'POST':
+        if unlocked == True:
+            try:
+                # Approve transaction
+                approve = dai_contract_rinkeby.functions.approve('0xE742e87184f840a559d26356362979AA6de56E3E',
+                                                         10000000000000000000).buildTransaction(
+                    {'chainId': 4, 'gas': web3_local_rinkeby.toWei('0.02', 'gwei'),
+                    'nonce': web3_local_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'), 'from': accounts_list[0]})
+
+                sign_approve = web3_arbitrum_rinkeby.eth.account.sign_transaction(approve, accounts_list[1])
+                web3_local_rinkeby.eth.send_raw_transaction(sign_approve.rawTransaction)
+
+                # Create bundle
+                create_bundle = lootbox_contract_arbitrum_bundle.functions.createBundle(10000000000000000000).buildTransaction(
+                    {'chainId': 4, 'gas': web3_local_rinkeby.toWei('0.02', 'gwei'),
+                    'nonce': web3_local_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'), 'from': accounts_list[0]})
+
+                sign_create_bundle = web3_arbitrum_rinkeby.eth.account.sign_transaction(create_bundle, accounts_list[1])
+                web3_arbitrum_rinkeby.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
+                flash('LootBundle created successfully!', 'success')
+            except Exception as e:
+                flash(e, 'warning')
+        return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
+                                private_key=accounts_list[1], mnemonic_phrase=accounts_list[2])
