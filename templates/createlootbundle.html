@@ -1,0 +1,100 @@
+<html>
+<link href="/static/bootstrap.min.css" rel="stylesheet">
+<link href="/static/TheLootBox.css" rel="stylesheet">
+<script src="/static/bootstrap.bundle.min.js"></script>
+
+<script>
+    function delete_flash(flash){
+        $(flash).parent().remove()
+    }
+</script>
+<header class="header">
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/"><img src="/static/images/TheLootBoxLogo.png"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/create" tabindex="-1">Create account</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/account" tabindex="-1">Account</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/send" tabindex="-1">Send Ether</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/createlootbundle" tabindex="-1">Loot Bundles</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/showcase" tabindex="-1">Showcase</a>
+          </li>
+        </ul>
+          <button class="btn btn-outline-success img-size"><a href="https://github.com/TheLootBox-xyz"><img src="/static/images/github.png"></a></button>
+          <button class="btn btn-outline-success img-size"><img src="/static/images/Discord.png"></button>
+      </div>
+    </div>
+  </nav>
+  </header>
+<body class="form_body">
+<div id="particles-js"></div>
+<script src="/static/particles.min.js"></script>
+<script src="/static/particles.js"></script>
+
+<form method="POST" action="send_lootbundle_transaction" class="create_account_form">
+<h3>Create LootBox</h3>
+<br>
+  {{ form.csrf_token }}
+  {% block content %}
+    {% if account == "unlocked" %}
+         {{ form.submit(class="btn btn-primary")}}
+      </form>
+    {% endif %}
+  {% endblock content %}
+</form>
+</body>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <span>{{ message }}</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close" onclick=delete_flash(this)>
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<footer class="footer">
+  <div class="row">
+    <div class="col-12 col-md">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-braces" viewBox="0 0 16 16"><title>Product</title><path d="M2.114 8.063V7.9c1.005-.102 1.497-.615 1.497-1.6V4.503c0-1.094.39-1.538 1.354-1.538h.273V2h-.376C3.25 2 2.49 2.759 2.49 4.352v1.524c0 1.094-.376 1.456-1.49 1.456v1.299c1.114 0 1.49.362 1.49 1.456v1.524c0 1.593.759 2.352 2.372 2.352h.376v-.964h-.273c-.964 0-1.354-.444-1.354-1.538V9.663c0-.984-.492-1.497-1.497-1.6zM13.886 7.9v.163c-1.005.103-1.497.616-1.497 1.6v1.798c0 1.094-.39 1.538-1.354 1.538h-.273v.964h.376c1.613 0 2.372-.759 2.372-2.352v-1.524c0-1.094.376-1.456 1.49-1.456V7.332c-1.114 0-1.49-.362-1.49-1.456V4.352C13.51 2.759 12.75 2 11.138 2h-.376v.964h.273c.964 0 1.354.444 1.354 1.538V6.3c0 .984.492 1.497 1.497 1.6z"/></svg>
+      <small class="d-block mb-3 text-muted">&copy; 2021</small>
+    </div>
+    <div class="col-6 col-md">
+      <h5>Features</h5>
+      <ul class="list-unstyled text-small">
+        <li><a class="link-secondary" href="/createlootbundle">Loot Bundles</a></li>
+      </ul>
+    </div>
+    <div class="col-6 col-md footer-img-size">
+      <h5>Resources</h5>
+      <ul class="list-unstyled text-small">
+        <li><a class="link-secondary" href="https://github.com/TheLootBox-xyz">Code</a></li>
+        <li><a class="link-secondary" href="#">Community</a></li>
+      </ul>
+    </div>
+    <div class="col-6 col-md">
+      <h5>About TheLootBox</h5>
+      <ul class="list-unstyled text-small">
+        <li><a class="link-secondary" href="/about">About</a></li>
+        <li><a class="link-secondary" href="/privacy">Privacy</a></li>
+        <li><a class="link-secondary" href="/contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+</html>
