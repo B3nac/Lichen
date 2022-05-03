@@ -13,7 +13,8 @@ from app.blueprints import (
     create_account_blueprint,
     account_blueprint,
     send_ether_blueprint,
-    send_transaction_blueprint
+    send_transaction_blueprint,
+    send_lootbundle_blueprint
 )
 
 app.register_blueprint(index_blueprint)
@@ -22,6 +23,7 @@ app.register_blueprint(create_account_blueprint)
 app.register_blueprint(account_blueprint)
 app.register_blueprint(send_ether_blueprint)
 app.register_blueprint(send_transaction_blueprint)
+app.register_blueprint(send_lootbundle_blueprint)
 
 
 @app.errorhandler(404)

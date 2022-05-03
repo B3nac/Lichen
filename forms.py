@@ -2,7 +2,6 @@ from flask import session
 from flask_wtf import FlaskForm
 from wtforms.csrf.session import SessionCSRF
 from wtforms import StringField, SubmitField, validators, BooleanField
-import os
 from datetime import timedelta
 import string
 import secrets
@@ -27,7 +26,8 @@ class CreateAccountForm(FlaskForm):
 
 
 class AccountForm(FlaskForm):
-    create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=42)], id='password')
+    create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=42)],
+                                       id='password')
     show_password = BooleanField('Show account private key', id='check')
 
     class Meta:

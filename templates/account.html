@@ -4,7 +4,6 @@
 <script src="/static/bootstrap.bundle.min.js"></script>
 <script src="/static/jquery.min.js"></script>
 <script src="/static/flash_alerts.js"></script>
-
 <script>
     function delete_flash(flash){
         $(flash).remove()
@@ -65,13 +64,14 @@
     </div>
     {% endfor %}
   </div>
-<body class="form_body">
-<div id="particles-js"></div>
-<script src="/static/particles.min.js"></script>
-<script src="/static/particles.js"></script>
-
+  <body class="form_body">
+  <div id="particles-js"></div>
+  <script src="/static/particles.min.js"></script>
+  <script src="/static/particles.js"></script>
+<div class="account_form">
   {% block content %}
     {% if account == "new" %}
+  <div>
     <form class="new_account_form">
       <h3>Account</h3>
       <br>
@@ -85,8 +85,9 @@
       <p>Save this key! Your account unlock key will not be saved on disc.</p>
       <input type="text" value="{{ wallet_key }}" size="35">
       <p>Seriously save this key &#11014; so you can unlock your account. </p>
+    </form>
     {% elif account == "unlocked" %}
-    <form class="account_form">
+    <form>
       <h3>Account</h3>
       <br>
       <p>Public address</p>
@@ -95,6 +96,7 @@
       <input type="password" value="{{ private_key }}" size="53" id="private_key"><br><br>
       <p>Mnemomic phrase</p>
       <input type="password" value="{{ mnemonic_phrase }}" size="50" id="mnemonic_phrase"><br><br><button type="button" id="hide_button" class="btn btn-primary">Show</button>
+    </form>
     {% else %}
     <form class="account_form">
       <h3>Account</h3>
@@ -105,6 +107,7 @@
       <input type="text" value="{{ private_key }}" size="53"><br><br>
       <p>Mnemomic phrase</p>
       <input type="text" value="{{ mnemonic_phrase }}" size="50"><br><br>
+    </form>
       <form method="post">
         {{ form.csrf_token }}
         <p>{{ form.account_unlock_key }}</p>
@@ -112,7 +115,8 @@
       </form>
     {% endif %}
   {% endblock content %}
-</body>
+  </div>
+    </body>
 <footer class="footer">
   <div class="row">
     <div class="col-12 col-md">

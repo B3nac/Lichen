@@ -18,6 +18,25 @@ p {
   margin-top:10px;
   margin-bottom:10px;
 }
+input {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 2px;
+}
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(120, 120, 120, 0.5);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+}
+::-webkit-scrollbar-track {
+  background: inset 0 0 8px  rgba(0, 0, 0, 0.2);
+}
 .flask_alert_container {
   pointer-events: all;
   position:absolute;
@@ -53,12 +72,13 @@ p {
   height: 45vh;
   width: 35vw;
   background: #000000;
-  border-radius: 25px;
+  border-radius: 10px;
   padding: 20px;
   color: #FFFFFF;
   pointer-events: all;
   outline-style: solid;
   outline-color: #5cb85c;
+  overflow: overlay;
 }
 .create_account_form {
   height: 30vh;
