@@ -61,35 +61,37 @@ input {
   height: 60vh;
   width: 35vw;
   background: #000000;
-  border-radius: 25px;
+  border: 2px solid #5cb85c;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
   padding: 20px;
   color: #FFFFFF;
   pointer-events: all;
-  outline-style: solid;
-  outline-color: #5cb85c;
+  overflow: overlay;
 }
 .account_form {
   height: 45vh;
   width: 35vw;
   background: #000000;
+  border: 2px solid #5cb85c;
   border-radius: 10px;
+  -webkit-border-radius: 10px;
   padding: 20px;
   color: #FFFFFF;
   pointer-events: all;
-  outline-style: solid;
-  outline-color: #5cb85c;
   overflow: overlay;
 }
 .create_account_form {
   height: 30vh;
   width: 35vw;
   background: #000000;
-  border-radius: 25px;
+  border: 2px solid #5cb85c;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
   padding: 20px;
   color: #FFFFFF;
   pointer-events: all;
-  outline-style: solid;
-  outline-color: #5cb85c;
+  overflow: overlay;
 }
 .footer {
   position: fixed;
