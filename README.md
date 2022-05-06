@@ -1,5 +1,8 @@
 # TheLootBoxClient
-TheLootBox local Ethereum account creation and contract interaction client that focuses on security.
+
+Protect your loot with TheLootBoxClient! 
+
+TheLootBox local Ethereum account creation and contract interaction client that focuses on security. A lockbox for your ethereum assets.
 
 ### Features
 
@@ -19,8 +22,6 @@ If you would like to send anything to my ens name `b3nac.eth` it will be appreci
 
 ### In progress
 
-- Setting up TheLootBox contract functions.
-
-- Creating a docker image (this also adds another layer of security)
+~~- Setting up TheLootBox contract functions.
 
 - Add setup instructions
