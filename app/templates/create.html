@@ -2,10 +2,11 @@
 <link href="/static/bootstrap.min.css" rel="stylesheet">
 <link href="/static/TheLootBox.css" rel="stylesheet">
 <script src="/static/bootstrap.bundle.min.js"></script>
-
+<script src="/static/jquery.min.js"></script>
+<script src="/static/flash_alerts.js"></script>
 <script>
     function delete_flash(flash){
-        $(flash).parent().remove()
+        $(flash).remove()
     }
 </script>
 <header class="header">
@@ -39,6 +40,13 @@
     </div>
   </nav>
   </header>
+ <div class="flask_alert_container" onclick="delete_flash(this)">
+    {% for catagory, message in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{ catagory }}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
 <body class="form_body">
 <div id="particles-js"></div>
 <script src="/static/particles.min.js"></script>
@@ -59,18 +67,6 @@
     </div>
 </form>
 </body>
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <span>{{ message }}</span>
-                <button type="button" data-dismiss="alert" aria-label="Close" class="fade close" onclick=delete_flash(this)>
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
 <footer class="footer">
   <div class="row">
     <div class="col-12 col-md">

@@ -71,8 +71,7 @@
 <div class="account_form">
   {% block content %}
     {% if account == "new" %}
-  <div>
-    <form class="new_account_form">
+    <form>
       <h3>Account</h3>
       <br>
       <p>Public address</p>
@@ -98,7 +97,7 @@
       <input type="password" value="{{ mnemonic_phrase }}" size="50" id="mnemonic_phrase"><br><br><button type="button" id="hide_button" class="btn btn-primary">Show</button>
     </form>
     {% else %}
-    <form class="account_form">
+    <form>
       <h3>Account</h3>
       <br>
       <p>Public address</p>
