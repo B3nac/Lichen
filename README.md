@@ -22,6 +22,6 @@ If you would like to send anything to my ens name `b3nac.eth` it will be appreci
 
 ### In progress
 
-~~Setting up TheLootBox contract functions.
+- Setting up TheLootBox contract functions.
 
 - Add setup instructions
