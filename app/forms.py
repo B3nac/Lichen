@@ -11,7 +11,7 @@ random = ''.join(secrets.choice(alphabet) for i in range(15))
 
 
 class CreateAccountForm(FlaskForm):
-    create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=42)])
+    create_from_mnemonic = StringField('Create account from mnemonic')
     submit = SubmitField('Create new account')
 
     class Meta:

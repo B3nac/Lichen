@@ -1,5 +1,7 @@
 import json
 import os
+from eth_account import Account
+import eth_utils
 from datetime import datetime
 
 from cryptography.fernet import Fernet
@@ -25,7 +27,7 @@ year = str(datetime.now().year)
 
 accounts_list = []
 
-web3_arbitrum_rinkeby.eth.account.enable_unaudited_hdwallet_features()
+Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
 
@@ -53,17 +55,20 @@ def create_account():
     if request.method == 'GET':
         return render_template('create.html', form=form)
     if request.method == 'POST':
-        new_eth_account, mnemonic = web3_arbitrum_rinkeby.eth.account.create_with_mnemonic()
+        new_eth_account, mnemonic = Account.create_with_mnemonic()
         wallet_key = Fernet.generate_key().decode("utf-8")
         mnemonic_field_value = request.form.get('create_from_mnemonic')
         if mnemonic_field_value:
             try:
-                new_eth_account = web3_arbitrum_rinkeby.eth.account.from_mnemonic(str(mnemonic_field_value))
+                form = AccountForm()
+                new_eth_account = Account.from_mnemonic(str(mnemonic_field_value))
                 wallet_key = Fernet.generate_key().decode("utf-8")
-                # create_account(new_eth_account, wallet_key)
-            except Exception as e:
+                create_account_callback(new_eth_account, mnemonic_field_value, wallet_key)
+                return render_template('account.html', account="new", pub_address=new_eth_account.address,
+                                       private_key=new_eth_account.key.hex(),
+                                       mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, form=form)
+            except eth_utils.exceptions.ValidationError as e:
                 flash(f"{e}, probably incorrect format.", 'warning')
-                return render_template('create.html', form=form)
         else:
             pub_address = new_eth_account.address
             mnemonic_phrase = mnemonic
