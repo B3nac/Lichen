@@ -16,7 +16,10 @@ TheLootBox local Ethereum account creation and contract interaction client that 
 
 ---
 
-#### Setup
+### Start from binary
+
+
+### Setup from source
 
 I highly recommended creating a virtual environment to avoid dependency conflicts.
 
@@ -26,9 +29,13 @@ Once the venv is created source it in order to install the dependencies to that 
 
 `source path/to/envname/bin/activate`
 
+Clone TheLootBox repository from Github.
+
+`git clone git@github.com:TheLootBox-xyz/TheLootBoxClient.git`
+
 The required dependencies can be installed with pip.
 
-`pip install flask flask_wtf wtforms web3 eth-account cryptography.fernet webview`
+`pip install -r requirements.txt`
  
 Then start TheLootBoxClient.
 
