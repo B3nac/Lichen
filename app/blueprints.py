@@ -58,6 +58,7 @@ def create_account():
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         wallet_key = Fernet.generate_key().decode("utf-8")
         mnemonic_field_value = request.form.get('create_from_mnemonic')
+        number_of_accounts = request.form.get('number_of_accounts')
         if mnemonic_field_value:
             try:
                 form = AccountForm()

@@ -82,8 +82,8 @@ input {
   overflow: overlay;
 }
 .create_account_form {
-  height: 30vh;
-  width: 35vw;
+  height: 40vh;
+  width: 40vw;
   background: #000000;
   border: 2px solid #5cb85c;
   border-radius: 10px;
