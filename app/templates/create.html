@@ -59,11 +59,12 @@
             <br>
             <p>Import account from mnemonic</p>
             <p>{{ form.create_from_mnemonic }}</p>
-            <p>or</p>
-            <div class="form-group">
-            {{ form.submit(class="btn btn-primary")}}
+            <p>Create a fresh account by not providing a mnemonic phrase</p>
+            {{ form.create(class="btn btn-primary")}}
         </div>
-        </div>
+        <p>Create multiple accounts from mnemonic</p>
+        <p>{{ form.number_of_accounts }}</p>
+            {{ form.create_multiple(class="btn btn-primary")}}
     </div>
 </form>
 </body>
