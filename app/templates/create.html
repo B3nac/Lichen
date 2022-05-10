@@ -54,7 +54,7 @@
 <form method="POST" action="create" class="create_account_form">
     {{ form.csrf_token }}
     <div class="form-row">
-        <div class="form-group col-md-6">
+        <div>
             <h3>Create account</h3>
             <br>
             <p>Import account from mnemonic</p>
@@ -62,9 +62,12 @@
             <p>Create a fresh account by not providing a mnemonic phrase</p>
             {{ form.create(class="btn btn-primary")}}
         </div>
-        <p>Create multiple accounts from mnemonic</p>
-        <p>{{ form.number_of_accounts }}</p>
+        <div>
+            <br>
+            <p>Create multiple accounts from mnemonic</p>
+            <p>Number of accounts {{ form.number_of_accounts }}</p>
             {{ form.create_multiple(class="btn btn-primary")}}
+        </div>
     </div>
 </form>
 </body>
