@@ -28,7 +28,7 @@ class CreateAccountForm(FlaskForm):
 
 
 class AccountForm(FlaskForm):
-    create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=42)],
+    create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=50)],
                                        id='password')
     show_password = BooleanField('Show account private key', id='check')
 
@@ -44,7 +44,7 @@ class AccountForm(FlaskForm):
 
 
 class UnlockAccountForm(FlaskForm):
-    account_unlock_key = StringField('Account unlock key', [validators.Length(min=0, max=42)])
+    account_unlock_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
     submit = SubmitField('Unlock account')
 
     class Meta:

@@ -68,9 +68,9 @@
   <div id="particles-js"></div>
   <script src="/static/particles.min.js"></script>
   <script src="/static/particles.js"></script>
-<div class="account_form">
   {% block content %}
     {% if account == "new" %}
+  <div class="account_form">
     <form>
       <h3>Account</h3>
       <br>
@@ -85,7 +85,9 @@
       <input type="text" value="{{ wallet_key }}" size="35">
       <p>Seriously save this key &#11014; so you can unlock your account. </p>
     </form>
+    </div>
     {% elif account == "unlocked" %}
+    <div class="account_form">
     <form>
       <h3>Account</h3>
       <br>
@@ -96,6 +98,9 @@
       <p>Mnemomic phrase</p>
       <input type="password" value="{{ mnemonic_phrase }}" size="50" id="mnemonic_phrase"><br><br><button type="button" id="hide_button" class="btn btn-primary">Show</button>
     </form>
+    </div>
+    <div class="account_form">
+    </div>
     {% else %}
     <form>
       <h3>Account</h3>
