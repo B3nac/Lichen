@@ -59,70 +59,59 @@ def create_account():
         wallet_key = Fernet.generate_key().decode("utf-8")
         mnemonic_field_value = request.form.get('create_from_mnemonic')
         number_of_accounts = request.form.get('number_of_accounts')
-        if mnemonic_field_value:
-            if number_of_accounts:
-                try:
-                    multiple_accounts_list = []
-                    no_plaintext = Fernet(wallet_key)
+        if mnemonic_field_value and number_of_accounts:
+            try:
+                multiple_accounts_list = []
+                no_plaintext = Fernet(wallet_key)
 
-                    if os.path.exists("accounts.json"):
-                        with open('accounts.json', 'r') as account_check:
-                            current_accounts = json.load(account_check)
+                if os.path.exists("accounts.json"):
+                    with open('accounts.json', 'r') as account_check:
+                        current_accounts = json.load(account_check)
 
-                        for account_id in range(int(number_of_accounts)):
-                            try:
-                                if current_accounts[account_id]:
-                                    print("Account exists!!!!!")
-                                else:
-                                    print("Account does not exist")
-                            except IndexError:
-                                multiple_accounts_list.append(account_id)
+                    for account_id in range(int(number_of_accounts)):
+                        account_id = account_id + 1
+                        try:
+                            new_eth_account = Account.from_mnemonic(mnemonic_field_value,
+                                                                    account_path=f"m/44'/60'/0'/0/{account_id}")
+                            pub_address = new_eth_account.address
+                            private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
+                            account = {'number': int(account_id), 'public_address': pub_address,
+                                       'private_key': str(private_key.decode("utf-8"))}
+                            accounts_list.append(account)
+                            json.dump(accounts_list, open('accounts.json', 'w'))
+                        except IndexError as e:
+                            multiple_accounts_list.append(account_id)
+                            flash(f"{e}, probably incorrect format.", 'warning')
+                    return render_template('create.html', account="new", form=form, year=year)
+            except eth_utils.exceptions.ValidationError as e:
+                flash(f"{e}, probably incorrect format.", 'warning')
+                return render_template('create.html', account="new", form=form, year=year)
 
-                    for number in range(int(number_of_accounts)):
-                        new_eth_account = Account.from_mnemonic(mnemonic_field_value,
-                                                                account_path=f"m/44'/60'/0'/0/{number}")
-                        pub_address = new_eth_account.address
-                        private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
-                        account = {'number': int(number), 'public_address': pub_address,
-                                   'private_key': str(private_key.decode("utf-8"))}
-                        accounts_list.append(account)
-                    json.dump(accounts_list, open('accounts.json', 'w'))
-                    multiple_accounts_list.clear()
-                except eth_utils.exceptions.ValidationError as e:
-                    flash(f"{e}, probably incorrect format.", 'warning')
-            else:
-                try:
-                    form = AccountForm()
-                    new_eth_account = Account.from_mnemonic(str(mnemonic_field_value))
-                    wallet_key = Fernet.generate_key().decode("utf-8")
-                    create_account_callback(new_eth_account, mnemonic_field_value, wallet_key)
-                    return render_template('account.html', account="new", pub_address=new_eth_account.address,
-                                       private_key=new_eth_account.key.hex(),
-                                       mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, form=form)
-                except eth_utils.exceptions.ValidationError as e:
-                    flash(f"{e}, probably incorrect format.", 'warning')
         else:
-            pub_address = new_eth_account.address
-            mnemonic_phrase = mnemonic
-            private_key = new_eth_account.key.hex()
-            create_account_callback(new_eth_account, mnemonic, wallet_key)
-            return render_template('account.html', account="new", pub_address=pub_address, private_key=private_key,
-                                   mnemonic_phrase=mnemonic_phrase, wallet_key=wallet_key, form=form)
+            try:
+                form = AccountForm()
+                # new_eth_account = Account.from_mnemonic(str(mnemonic_field_value))
+                wallet_key = Fernet.generate_key().decode("utf-8")
+                create_account_callback(new_eth_account, mnemonic, wallet_key)
+                return render_template('account.html', account="new", pub_address=new_eth_account.address,
+                                       private_key=new_eth_account.key.hex(),
+                                       mnemonic_phrase=mnemonic, wallet_key=wallet_key, form=form)
+            except eth_utils.exceptions.ValidationError as e:
+                flash(f"{e}, probably incorrect format.", 'warning')
 
 
 def create_account_callback(new_eth_account, mnemonic, wallet_key):
     if not os.path.exists("accounts.json"):
+        account_id = 0
         no_plaintext = Fernet(wallet_key)
         pub_address = new_eth_account.address
         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic, encoding='utf8'))
-        save_account_info(pub_address, mnemonic_phrase, private_key)
-    else:
-        print("Account already exists!!!")
+        save_account_info(pub_address, mnemonic_phrase, private_key, account_id)
 
 
-def save_account_info(pub_address, mnemonic_phrase, private_key):
-    account_info = {'number': int(0), 'public_address': pub_address,
+def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
+    account_info = {'number': int(account_id), 'public_address': pub_address,
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
     accounts_list.append(account_info)
