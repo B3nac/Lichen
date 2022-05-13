@@ -99,9 +99,8 @@
       <input type="password" value="{{ mnemonic_phrase }}" size="50" id="mnemonic_phrase"><br><br><button type="button" id="hide_button" class="btn btn-primary">Show</button>
     </form>
     </div>
-    <div class="account_form">
-    </div>
     {% else %}
+  <div class="account_form">
     <form>
       <h3>Account</h3>
       <br>
@@ -112,15 +111,10 @@
       <p>Mnemomic phrase</p>
       <input type="text" value="{{ mnemonic_phrase }}" size="50"><br><br>
     </form>
-      <form method="post">
-        {{ form.csrf_token }}
-        <p>{{ form.account_unlock_key }}</p>
-           {{ form.submit(class="btn btn-primary")}}
-      </form>
-    {% endif %}
-  {% endblock content %}
   </div>
-    </body>
+  {% endif %}
+  {% endblock content %}
+  </body>
 <footer class="footer">
   <div class="row">
     <div class="col-12 col-md">

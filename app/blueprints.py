@@ -61,13 +61,8 @@ def create_account():
         number_of_accounts = request.form.get('number_of_accounts')
         if mnemonic_field_value and number_of_accounts:
             try:
-                multiple_accounts_list = []
                 no_plaintext = Fernet(wallet_key)
-
                 if os.path.exists("accounts.json"):
-                    with open('accounts.json', 'r') as account_check:
-                        current_accounts = json.load(account_check)
-
                     for account_id in range(int(number_of_accounts)):
                         account_id = account_id + 1
                         try:
@@ -80,13 +75,11 @@ def create_account():
                             accounts_list.append(account)
                             json.dump(accounts_list, open('accounts.json', 'w'))
                         except IndexError as e:
-                            multiple_accounts_list.append(account_id)
                             flash(f"{e}, probably incorrect format.", 'warning')
                     return render_template('create.html', account="new", form=form, year=year)
             except eth_utils.exceptions.ValidationError as e:
                 flash(f"{e}, probably incorrect format.", 'warning')
                 return render_template('create.html', account="new", form=form, year=year)
-
         else:
             try:
                 form = AccountForm()
@@ -142,19 +135,25 @@ def account():
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase, form=form)
     if request.method == 'GET':
         if not unlocked:
-            form = UnlockAccountForm()
             if not os.path.exists("accounts.json"):
                 flash("No accounts exist, please create an account.", 'warning')
                 form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form)
-            return render_template('unlock.html', account="current", form=form)
         if unlocked:
-            form = AccountForm()
-            pub_address = accounts_list[0]
-            private_key = accounts_list[1]
-            mnemonic_phrase = accounts_list[2]
+            account_unlock_key = request.form['account_unlock_key']
+            no_plaintext = Fernet(account_unlock_key)
+            with open('accounts.json', 'r') as accounts_from_file:
+                account_data_json = json.load(accounts_from_file)
+                form = AccountForm()
+                pub_address = account_data_json[int(0)]['public_address']
+                private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8'))
+                mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
+                                                             encoding='utf8'))
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+        else:
+            form = UnlockAccountForm()
+            return render_template('unlock.html', account="current", form=form)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
