@@ -125,14 +125,11 @@ def account():
                 bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
             decrypt_mnemonic_phrase = no_plaintext.decrypt(
                 bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-            accounts_list.clear()
-            accounts_list.append(pub_address)
-            accounts_list.append(decrypt_private_key)
-            accounts_list.append(decrypt_mnemonic_phrase)
             global unlocked
             unlocked = True
         return render_template('account.html', account="unlocked", pub_address=pub_address,
-                               private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase, form=form)
+                               private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
+                               account_list=accounts_list, form=form)
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):

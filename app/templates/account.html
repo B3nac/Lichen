@@ -99,6 +99,12 @@
       <input type="password" value="{{ mnemonic_phrase }}" size="50" id="mnemonic_phrase"><br><br><button type="button" id="hide_button" class="btn btn-primary">Show</button>
     </form>
     </div>
+    <div class="account_form">
+      <p>Other accounts</p>
+      {% for public_key in account_list %}
+      {{ public_key }}
+      {% endfor %}
+    </div>
     {% else %}
   <div class="account_form">
     <form>
