@@ -66,14 +66,17 @@ def create_account():
                     for account_id in range(int(number_of_accounts)):
                         account_id = account_id + 1
                         try:
-                            new_eth_account = Account.from_mnemonic(mnemonic_field_value,
+                            with open('accounts.json', 'r') as accounts_from_file:
+                                account_data_json = json.load(accounts_from_file)
+                                if not account_data_json[int(account_id)]:
+                                    new_eth_account = Account.from_mnemonic(mnemonic_field_value,
                                                                     account_path=f"m/44'/60'/0'/0/{account_id}")
-                            pub_address = new_eth_account.address
-                            private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
-                            account = {'number': int(account_id), 'public_address': pub_address,
-                                       'private_key': str(private_key.decode("utf-8"))}
-                            accounts_list.append(account)
-                            json.dump(accounts_list, open('accounts.json', 'w'))
+                                    pub_address = new_eth_account.address
+                                    private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
+                                    account = {'number': int(account_id), 'public_address': pub_address,
+                                                'private_key': str(private_key.decode("utf-8"))}
+                                    accounts_list.append(account)
+                                    json.dump(accounts_list, open('accounts.json', 'w'))
                         except IndexError as e:
                             flash(f"{e}, probably incorrect format.", 'warning')
                     return render_template('create.html', account="new", form=form, year=year)

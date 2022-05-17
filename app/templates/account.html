@@ -102,7 +102,7 @@
     <div class="account_form">
       <p>Other accounts</p>
       {% for public_key in account_list %}
-      {{ public_key }}
+      {{ public_key['public_address'] }}
       {% endfor %}
     </div>
     {% else %}
