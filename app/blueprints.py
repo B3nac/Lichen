@@ -57,31 +57,36 @@ def create_account():
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         wallet_key = Fernet.generate_key().decode("utf-8")
+        no_plaintext = Fernet(wallet_key)
         mnemonic_field_value = request.form.get('create_from_mnemonic')
         number_of_accounts = request.form.get('number_of_accounts')
         if mnemonic_field_value and number_of_accounts:
+            multiple_accounts_list = []
             try:
-                no_plaintext = Fernet(wallet_key)
                 if os.path.exists("accounts.json"):
-                    for account_id in range(int(number_of_accounts)):
-                        account_id = account_id + 1
-                        try:
-                            with open('accounts.json', 'r') as accounts_from_file:
-                                account_data_json = json.load(accounts_from_file)
-                                if not account_data_json[int(account_id)]:
-                                    new_eth_account = Account.from_mnemonic(mnemonic_field_value,
-                                                                    account_path=f"m/44'/60'/0'/0/{account_id}")
-                                    pub_address = new_eth_account.address
-                                    private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
-                                    account = {'number': int(account_id), 'public_address': pub_address,
-                                                'private_key': str(private_key.decode("utf-8"))}
-                                    accounts_list.append(account)
-                                    json.dump(accounts_list, open('accounts.json', 'w'))
-                        except IndexError as e:
-                            flash(f"{e}, probably incorrect format.", 'warning')
-                    return render_template('create.html', account="new", form=form, year=year)
+                    with open('accounts.json', 'r') as account_check:
+                        current_accounts = json.load(account_check)
+
+                for account in range(int(number_of_accounts)):
+                    try:
+                        if current_accounts[account]:
+                            print("Account exists!!!!!")
+                    except IndexError:
+                        multiple_accounts_list.append(account)
+                for number in multiple_accounts_list:
+                    new_eth_account = Account.from_mnemonic(mnemonic_field_value,
+                                                            account_path=f"m/44'/60'/0'/0/{number}")
+                    pub_address = new_eth_account.address
+                    private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
+                    mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
+                    save_account_info(pub_address, mnemonic_phrase, private_key, number)
+                multiple_accounts_list.clear()
+                return render_template('unlock.html', account="current", form=form, year=year)
+            except Exception as e:
+                flash(f"{e}, french.", 'warning')
+                return render_template('create.html', account="new", form=form, year=year)
             except eth_utils.exceptions.ValidationError as e:
-                flash(f"{e}, probably incorrect format.", 'warning')
+                flash(f"{e}, toast.", 'warning')
                 return render_template('create.html', account="new", form=form, year=year)
         else:
             try:
@@ -107,11 +112,10 @@ def create_account_callback(new_eth_account, mnemonic, wallet_key):
 
 
 def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
-    account_info = {'number': int(account_id), 'public_address': pub_address,
+    account_info = {'number': int(account_id), 'public_address': str(pub_address),
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
     accounts_list.append(account_info)
-
     json.dump(accounts_list, open('accounts.json', 'w'))
 
 
