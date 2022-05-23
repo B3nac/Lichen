@@ -91,7 +91,6 @@ def create_account():
         else:
             try:
                 form = AccountForm()
-                # new_eth_account = Account.from_mnemonic(str(mnemonic_field_value))
                 wallet_key = Fernet.generate_key().decode("utf-8")
                 create_account_callback(new_eth_account, mnemonic, wallet_key)
                 return render_template('account.html', account="new", pub_address=new_eth_account.address,
@@ -122,11 +121,18 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 def account():
     if request.method == 'POST':
+        public_address_list = []
         form = AccountForm()
         account_unlock_key = request.form['account_unlock_key']
         no_plaintext = Fernet(account_unlock_key)
         with open('accounts.json', 'r') as accounts_from_file:
             account_data_json = json.load(accounts_from_file)
+            for account in range(10):
+                try:
+                    if account_data_json[account]:
+                        public_address_list.append(account_data_json[account])
+                except IndexError as e:
+                    flash(f"{e}, No account exists with id {account}.", 'warning')
             pub_address = account_data_json[int(0)]['public_address']
             decrypt_private_key = no_plaintext.decrypt(
                 bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
@@ -136,7 +142,7 @@ def account():
             unlocked = True
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=accounts_list, form=form)
+                               account_list=public_address_list, form=form)
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
