@@ -100,9 +100,10 @@
     </form>
     </div>
     <div class="account_form">
-      <p>Other accounts</p>
+      <h3>Other accounts</h3>
+      <br>
       {% for public_key in account_list %}
-      {{ public_key['public_address'] }}
+      <p>{{ public_key['public_address'] }}</p>
       {% endfor %}
     </div>
     {% else %}

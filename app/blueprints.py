@@ -127,12 +127,12 @@ def account():
         no_plaintext = Fernet(account_unlock_key)
         with open('accounts.json', 'r') as accounts_from_file:
             account_data_json = json.load(accounts_from_file)
-            for account in range(10):
+            for account_id in range(10):
                 try:
-                    if account_data_json[account]:
-                        public_address_list.append(account_data_json[account])
+                    if account_data_json[account_id]:
+                        public_address_list.append(account_data_json[account_id])
                 except IndexError as e:
-                    flash(f"{e}, No account exists with id {account}.", 'warning')
+                    flash(f"{e}, No account exists with id {account_id}.", 'warning')
             pub_address = account_data_json[int(0)]['public_address']
             decrypt_private_key = no_plaintext.decrypt(
                 bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
