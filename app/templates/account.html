@@ -8,7 +8,6 @@
     function delete_flash(flash){
         $(flash).remove()
     }
-
     window.addEventListener("load", function(){
     let hide_bool = true;
     var hide_button  = document.getElementById('hide_button');
@@ -102,8 +101,11 @@
     <div class="account_form">
       <h3>Other accounts</h3>
       <br>
-      {% for public_key in account_list %}
-      <p>{{ public_key['public_address'] }}</p>
+      {% for account in account_list %}
+      <p>Public address</p>
+      <input type="text" value="{{ account['public_address'] }}" size="35"><br><br>
+      <p>Private key</p>
+      <input type="password" value="{{ account['private_key'] }}" size="53" id=""><br><br>
       {% endfor %}
     </div>
     {% else %}
