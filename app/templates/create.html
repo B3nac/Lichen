@@ -57,14 +57,13 @@
         <div>
             <h3>Create account</h3>
             <br>
-            <p>Import account from mnemonic</p>
-            <p>{{ form.create_from_mnemonic }}</p>
-            <p>Create a fresh account by not providing a mnemonic phrase</p>
+            <p>Create a fresh account</p>
             {{ form.create(class="btn btn-primary")}}
         </div>
         <div>
             <br>
-            <p>Create multiple accounts from mnemonic</p>
+            <p>Create one or multiple accounts from mnemonic</p>
+            <p>{{ form.create_from_mnemonic }}</p>
             <p>Number of accounts {{ form.number_of_accounts }}</p>
             {{ form.create_multiple(class="btn btn-primary")}}
         </div>

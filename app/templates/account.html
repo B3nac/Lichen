@@ -104,8 +104,6 @@
       {% for account in account_list %}
       <p>Public address</p>
       <input type="text" value="{{ account['public_address'] }}" size="35"><br><br>
-      <p>Private key</p>
-      <input type="password" value="{{ account['private_key'] }}" size="53" id=""><br><br>
       {% endfor %}
     </div>
     {% else %}

@@ -111,7 +111,7 @@ def create_account_callback(new_eth_account, mnemonic, wallet_key):
 
 
 def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
-    account_info = {'number': int(account_id), 'public_address': str(pub_address),
+    account_info = {'id': int(account_id), 'public_address': str(pub_address),
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
     accounts_list.append(account_info)
