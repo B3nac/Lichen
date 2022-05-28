@@ -31,6 +31,8 @@ class AccountForm(FlaskForm):
     create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=50)],
                                        id='password')
     show_password = BooleanField('Show account private key', id='check')
+    account_search = SubmitField('Lookup account')
+
 
     class Meta:
         csrf = True

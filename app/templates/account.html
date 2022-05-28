@@ -87,7 +87,7 @@
     </div>
     {% elif account == "unlocked" %}
     <div class="account_form">
-    <form>
+    <form method="POST" action="create">
       <h3>Account</h3>
       <br>
       <p>Public address</p>
@@ -96,6 +96,11 @@
       <input type="password" value="{{ private_key }}" size="53" id="private_key"><br><br>
       <p>Mnemomic phrase</p>
       <input type="password" value="{{ mnemonic_phrase }}" size="50" id="mnemonic_phrase"><br><br><button type="button" id="hide_button" class="btn btn-primary">Show</button>
+      <h3>View another account</h3>
+      <p>Account id</p>
+      <input type="text" size="53"><br><br>
+      {{ form.account_search(class="btn btn-primary")}}
+
     </form>
     </div>
     <div class="account_form">

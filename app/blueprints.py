@@ -209,7 +209,7 @@ def send_transaction():
 
 
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
-def create():
+def createlootbundle():
     global unlocked
     if request.method == 'GET':
         if not unlocked:
