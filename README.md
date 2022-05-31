@@ -51,7 +51,11 @@ Then start TheLootBoxClient.
 
 ~~- Setting up TheLootBox contract functions.~~
 
-- Add setup instructions
+~~- Add setup instructions.~~
+
+- Add multiple account support.
+
+- Add unit tests.
 
 ### Supporting development
 
