@@ -1,7 +1,7 @@
 from flask import session
 from flask_wtf import FlaskForm
 from wtforms.csrf.session import SessionCSRF
-from wtforms import StringField, SubmitField, validators, BooleanField
+from wtforms import StringField, SubmitField, validators, BooleanField, IntegerField
 from datetime import timedelta
 import string
 import secrets
@@ -15,6 +15,8 @@ class CreateAccountForm(FlaskForm):
     number_of_accounts = StringField('Create multiple accounts from mnemonic')
     create = SubmitField('Create new account')
     create_multiple = SubmitField('Create multiple accounts')
+    multiple_account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
+
 
     class Meta:
         csrf = True
@@ -32,6 +34,8 @@ class AccountForm(FlaskForm):
                                        id='password')
     show_password = BooleanField('Show account private key', id='check')
     account_search = SubmitField('Lookup account')
+    account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
+    account_id = IntegerField('Account id', [validators.Length(min=0, max=50)])
 
 
     class Meta:

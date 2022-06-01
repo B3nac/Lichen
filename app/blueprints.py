@@ -56,12 +56,12 @@ def create_account():
         return render_template('create.html', form=form)
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
-        wallet_key = Fernet.generate_key().decode("utf-8")
-        no_plaintext = Fernet(wallet_key)
-        mnemonic_field_value = request.form.get('create_from_mnemonic')
-        number_of_accounts = request.form.get('number_of_accounts')
+        mnemonic_field_value = request.form['create_from_mnemonic']
+        number_of_accounts = request.form['number_of_accounts']
         if mnemonic_field_value and number_of_accounts:
             multiple_accounts_list = []
+            wallet_key = request.form['multiple_account_key']
+            no_plaintext = Fernet(wallet_key)
             try:
                 if os.path.exists("accounts.json"):
                     with open('accounts.json', 'r') as account_check:
@@ -81,6 +81,7 @@ def create_account():
                     mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
                     save_account_info(pub_address, mnemonic_phrase, private_key, number)
                 multiple_accounts_list.clear()
+                form = UnlockAccountForm()
                 return render_template('unlock.html', account="current", form=form, year=year)
             except Exception as e:
                 flash(f"{e}, french.", 'warning')
@@ -164,6 +165,34 @@ def account():
         else:
             form = UnlockAccountForm()
             return render_template('unlock.html', account="current", form=form)
+
+
+@account_blueprint.route('/lookup', methods=['POST'])
+def account_lookup():
+    if request.method == 'POST':
+        public_address_list = []
+        form = AccountForm()
+        account_unlock_key = request.form['account_key']
+        no_plaintext = Fernet(account_unlock_key)
+        lookup_account = request.form['account_id']
+        with open('accounts.json', 'r') as accounts_from_file:
+            account_data_json = json.load(accounts_from_file)
+            for account_id in range(10):
+                try:
+                    if account_data_json[account_id]:
+                        public_address_list.append(account_data_json[account_id])
+                except IndexError as e:
+                    flash(f"{e}, No account exists with id {account_id}.", 'warning')
+            pub_address = account_data_json[int(lookup_account)]['public_address']
+            decrypt_private_key = no_plaintext.decrypt(
+                bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
+            decrypt_mnemonic_phrase = no_plaintext.decrypt(
+                bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+            global unlocked
+            unlocked = True
+        return render_template('account.html', account="unlocked", pub_address=pub_address,
+                               private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
+                               account_list=public_address_list, form=form)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
