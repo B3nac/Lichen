@@ -51,7 +51,13 @@
   {{ form.csrf_token }}
   {% block content %}
     {% if account == "unlocked" %}
-         {{ form.submit(class="btn btn-primary")}}
+          <div>
+            <label class="form-check-label" for="flexCheckDefault">
+              Approve transaction <br><br>
+            </label>
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" required>
+          </div>
+          {{ form.submit(class="btn btn-primary")}}
       </form>
 {% endif %}
 {% endblock content %}
