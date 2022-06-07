@@ -1,8 +1,8 @@
-# TheLootBoxClient
+# TheLootBoxWallet
 
-Protect your loot with TheLootBoxClient! 
+Protect your loot with TheLootBoxWallet! 
 
-TheLootBox local Ethereum account creation and contract interaction client that focuses on security. A lockbox for your ethereum assets.
+TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets.
 
 ---
 
@@ -53,7 +53,7 @@ Then start TheLootBoxClient.
 
 ~~- Add setup instructions.~~
 
-- Add multiple account support.
+~~- Add multiple account support.~~
 
 - Add unit tests.
 
