@@ -2,6 +2,7 @@ from flask import session
 from flask_wtf import FlaskForm
 from wtforms.csrf.session import SessionCSRF
 from wtforms import StringField, SubmitField, validators, BooleanField, IntegerField
+from wtforms.widgets import PasswordInput
 from datetime import timedelta
 import string
 import secrets
@@ -34,7 +35,8 @@ class AccountForm(FlaskForm):
                                        id='password')
     show_password = BooleanField('Show account private key', id='check')
     account_search = SubmitField('Lookup account')
-    account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
+    account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)],
+                              widget=PasswordInput(hide_value=True))
     account_id = IntegerField('Account id', [validators.Length(min=0, max=50)])
 
 
@@ -50,7 +52,7 @@ class AccountForm(FlaskForm):
 
 
 class UnlockAccountForm(FlaskForm):
-    account_unlock_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
+    account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
     submit = SubmitField('Unlock account')
 
     class Meta:

@@ -58,22 +58,25 @@ def create_account():
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
         number_of_accounts = request.form['number_of_accounts']
+        wallet_key = Fernet.generate_key().decode("utf-8")
         if mnemonic_field_value and number_of_accounts:
             multiple_accounts_list = []
-            wallet_key = request.form['multiple_account_key']
+            # wallet_key = request.form['multiple_account_key']
             no_plaintext = Fernet(wallet_key)
             try:
                 if os.path.exists("accounts.json"):
                     with open('accounts.json', 'r') as account_check:
                         current_accounts = json.load(account_check)
 
-                for account in range(int(number_of_accounts)):
-                    try:
-                        if current_accounts[account]:
-                            print("Account exists!!!!!")
-                    except IndexError:
-                        multiple_accounts_list.append(account)
-                for number in multiple_accounts_list:
+                    for account in range(int(number_of_accounts)):
+                        try:
+                            if current_accounts[account]:
+                                print("Account exists!!!!!")
+                        except IndexError:
+                            multiple_accounts_list.append(account)
+                if not os.path.exists("accounts.json"):
+                    multiple_accounts_list = [number_of_accounts]
+                for number in range(int(number_of_accounts)):
                     new_eth_account = Account.from_mnemonic(mnemonic_field_value,
                                                             account_path=f"m/44'/60'/0'/0/{number}")
                     pub_address = new_eth_account.address
@@ -81,8 +84,10 @@ def create_account():
                     mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
                     save_account_info(pub_address, mnemonic_phrase, private_key, number)
                 multiple_accounts_list.clear()
-                form = UnlockAccountForm()
-                return render_template('unlock.html', account="current", form=form, year=year)
+                form = AccountForm()
+                return render_template('account.html', account="new", pub_address=new_eth_account.address,
+                                       private_key=new_eth_account.key.hex(),
+                                       mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, year=year)
             except Exception as e:
                 flash(f"{e}, french.", 'warning')
                 return render_template('create.html', account="new", form=form, year=year)
@@ -92,7 +97,7 @@ def create_account():
         else:
             try:
                 form = AccountForm()
-                wallet_key = Fernet.generate_key().decode("utf-8")
+                # wallet_key = Fernet.generate_key().decode("utf-8")
                 create_account_callback(new_eth_account, mnemonic, wallet_key)
                 return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                        private_key=new_eth_account.key.hex(),
@@ -124,7 +129,7 @@ def account():
     if request.method == 'POST':
         public_address_list = []
         form = AccountForm()
-        account_unlock_key = request.form['account_unlock_key']
+        account_unlock_key = request.form['account_key']
         no_plaintext = Fernet(account_unlock_key)
         with open('accounts.json', 'r') as accounts_from_file:
             account_data_json = json.load(accounts_from_file)
@@ -151,7 +156,7 @@ def account():
                 form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form)
         if unlocked:
-            account_unlock_key = request.form['account_unlock_key']
+            account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
             with open('accounts.json', 'r') as accounts_from_file:
                 account_data_json = json.load(accounts_from_file)
@@ -188,8 +193,6 @@ def account_lookup():
                 bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
             decrypt_mnemonic_phrase = no_plaintext.decrypt(
                 bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-            global unlocked
-            unlocked = True
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=public_address_list, form=form)
