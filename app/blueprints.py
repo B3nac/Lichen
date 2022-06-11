@@ -57,18 +57,17 @@ def create_account():
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
-        number_of_accounts = request.form['number_of_accounts']
+        number_of_accounts: int = int(request.form['number_of_accounts'])
         wallet_key = Fernet.generate_key().decode("utf-8")
         if mnemonic_field_value and number_of_accounts:
             multiple_accounts_list = []
-            # wallet_key = request.form['multiple_account_key']
             no_plaintext = Fernet(wallet_key)
             try:
                 if os.path.exists("accounts.json"):
                     with open('accounts.json', 'r') as account_check:
                         current_accounts = json.load(account_check)
 
-                    for account in range(int(number_of_accounts)):
+                    for account in range(number_of_accounts):
                         try:
                             if current_accounts[account]:
                                 print("Account exists!!!!!")
@@ -76,7 +75,7 @@ def create_account():
                             multiple_accounts_list.append(account)
                 if not os.path.exists("accounts.json"):
                     multiple_accounts_list = [number_of_accounts]
-                for number in range(int(number_of_accounts)):
+                for number in range(number_of_accounts):
                     new_eth_account = Account.from_mnemonic(mnemonic_field_value,
                                                             account_path=f"m/44'/60'/0'/0/{number}")
                     pub_address = new_eth_account.address
