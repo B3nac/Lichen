@@ -96,7 +96,6 @@ def create_account():
         else:
             try:
                 form = AccountForm()
-                # wallet_key = Fernet.generate_key().decode("utf-8")
                 create_account_callback(new_eth_account, mnemonic, wallet_key)
                 return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                        private_key=new_eth_account.key.hex(),
@@ -217,26 +216,34 @@ def send():
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
 def send_transaction():
-    if request.method == 'POST':
-        if unlocked:
-            to_account = request.form['to_public_address']
-            amount = request.form['amount_of_ether']
-            try:
-                tx = {
-                    'nonce': web3_arbitrum_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'),
-                    'to': to_account,
-                    'value': web3_arbitrum_rinkeby.toWei(amount, 'ether'),
-                    'gas': web3_arbitrum_rinkeby.toWei('0.02', 'gwei'),
-                    'gasPrice': gas_price,
-                    'from': accounts_list[0]
-                }
-                sign = web3_arbitrum_rinkeby.eth.account.sign_transaction(tx, accounts_list[1])
-                web3_arbitrum_rinkeby.eth.send_raw_transaction(sign.rawTransaction)
-                flash('Transaction sent successfully!', 'success')
-            except Exception as e:
-                flash(e, 'warning')
-        return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
-                               private_key=accounts_list[1], mnemonic_phrase=accounts_list[2])
+    if request.method == 'POST' and unlocked:
+        to_account = request.form['to_public_address']
+        amount = request.form['amount_of_ether']
+        try:
+            tx = {
+                'nonce': web3_arbitrum_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'),
+                'to': to_account,
+                'value': web3_arbitrum_rinkeby.toWei(amount, 'ether'),
+                'gas': web3_arbitrum_rinkeby.toWei('0.02', 'gwei'),
+                'gasPrice': gas_price,
+                'from': accounts_list[0]
+            }
+            sign = web3_arbitrum_rinkeby.eth.account.sign_transaction(tx, accounts_list[1])
+            web3_arbitrum_rinkeby.eth.send_raw_transaction(sign.rawTransaction)
+            flash('Transaction sent successfully!', 'success')
+        except Exception as e:
+            flash(e, 'warning')
+        account_unlock_key = request.form['account_key']
+        no_plaintext = Fernet(account_unlock_key)
+        with open('accounts.json', 'r') as accounts_from_file:
+            account_data_json = json.load(accounts_from_file)
+            form = AccountForm()
+            pub_address = account_data_json[int(0)]['public_address']
+            private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8'))
+            mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
+                                                         encoding='utf8'))
+        return render_template('account.html', account="unlocked", pub_address=pub_address,
+                               private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
 
 
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
