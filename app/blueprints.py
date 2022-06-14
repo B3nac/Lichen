@@ -23,7 +23,7 @@ send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
 
-year = str(datetime.now().year)
+year: str = str(datetime.now().year)
 
 accounts_list = []
 
@@ -146,7 +146,7 @@ def account():
             unlocked = True
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=public_address_list, form=form)
+                               account_list=public_address_list, form=form, year=year)
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
@@ -164,10 +164,10 @@ def account():
                 mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
                                                              encoding='utf8'))
             return render_template('account.html', account="unlocked", pub_address=pub_address,
-                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year)
         else:
             form = UnlockAccountForm()
-            return render_template('unlock.html', account="current", form=form)
+            return render_template('unlock.html', account="current", form=form, year=year)
 
 
 @account_blueprint.route('/lookup', methods=['POST'])
@@ -193,7 +193,7 @@ def account_lookup():
                 bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=public_address_list, form=form)
+                               account_list=public_address_list, form=form, year=year)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
@@ -243,7 +243,7 @@ def send_transaction():
             mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
                                                          encoding='utf8'))
         return render_template('account.html', account="unlocked", pub_address=pub_address,
-                               private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+                               private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year)
 
 
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
@@ -258,10 +258,10 @@ def createlootbundle():
                 private_key = account_data_json[int(0)]['private_key']
                 mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
             return render_template('unlock.html', account="current", pub_address=pub_address,
-                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form)
+                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year)
         if unlocked:
             form = CreateLootBundleForm()
-            return render_template('createlootbundle.html', account="unlocked", form=form)
+            return render_template('createlootbundle.html', account="unlocked", form=form, year=year)
 
 
 @send_lootbundle_blueprint.route('/send_lootbundle_transaction', methods=['POST'])
@@ -292,4 +292,4 @@ def send_lootbundle_transaction():
             except Exception as e:
                 flash(e, 'warning')
         return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
-                               private_key=accounts_list[1], mnemonic_phrase=accounts_list[2])
+                               private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], year=year)
