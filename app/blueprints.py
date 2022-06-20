@@ -57,11 +57,12 @@ def create_account():
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
-        number_of_accounts: int = int(request.form['number_of_accounts'])
+        number_of_accounts = request.form['number_of_accounts']
         wallet_key = Fernet.generate_key().decode("utf-8")
         if mnemonic_field_value and number_of_accounts:
             multiple_accounts_list = []
             no_plaintext = Fernet(wallet_key)
+            number_of_accounts = int(number_of_accounts)
             try:
                 if os.path.exists("accounts.json"):
                     with open('accounts.json', 'r') as account_check:
@@ -74,17 +75,18 @@ def create_account():
                         except IndexError:
                             multiple_accounts_list.append(account)
                 if not os.path.exists("accounts.json"):
-                    multiple_accounts_list = [number_of_accounts]
-                for number in range(number_of_accounts):
-                    new_eth_account = Account.from_mnemonic(mnemonic_field_value,
+                    if number_of_accounts == '':
+                        number_of_accounts = 0
+                    for number in range(number_of_accounts):
+                        new_eth_account = Account.from_mnemonic(mnemonic_field_value,
                                                             account_path=f"m/44'/60'/0'/0/{number}")
-                    pub_address = new_eth_account.address
-                    private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
-                    mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
-                    save_account_info(pub_address, mnemonic_phrase, private_key, number)
-                multiple_accounts_list.clear()
-                form = AccountForm()
-                return render_template('account.html', account="new", pub_address=new_eth_account.address,
+                        pub_address = new_eth_account.address
+                        private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
+                        mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
+                        save_account_info(pub_address, mnemonic_phrase, private_key, number)
+                    multiple_accounts_list.clear()
+                    form = AccountForm()
+                    return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                        private_key=new_eth_account.key.hex(),
                                        mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, year=year)
             except Exception as e:
