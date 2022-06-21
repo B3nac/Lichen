@@ -51,9 +51,13 @@ def index():
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
 def create_account():
-    form = CreateAccountForm()
     if request.method == 'GET':
-        return render_template('create.html', form=form)
+        if os.path.exists("accounts.json"):
+            form = UnlockAccountForm()
+            return render_template('unlock.html', account="current", form=form, year=year)
+        else:
+            form = CreateAccountForm()
+            return render_template('create.html', form=form)
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
