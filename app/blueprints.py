@@ -22,6 +22,8 @@ account_blueprint = Blueprint('account_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
+delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
+
 
 year: str = str(datetime.now().year)
 
@@ -299,3 +301,11 @@ def send_lootbundle_transaction():
                 flash(e, 'warning')
         return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
                                private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], year=year)
+
+
+@delete_accounts_blueprint.route('/delete', methods=['POST'])
+def delete_accounts():
+    if os.path.exists("accounts.json"):
+        os.remove("accounts.json")
+    else:
+        flash("No accounts exist", 'warning')
