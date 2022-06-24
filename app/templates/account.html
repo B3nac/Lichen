@@ -103,10 +103,10 @@
       <p>Account unlock key</p>
       {{ form.account_key }}<br><br>
       {{ form.account_search(class="btn btn-primary")}}<br><br>
-      <form action="/delete" method="post">
+      </form>
+      <form method="POST" action="delete">
         <input type="submit" name="delete" value="Delete accounts" class="btn btn-primary" />
       </form>
-    </form>
     </div>
     <div class="account_form">
       <h3>Other accounts</h3>

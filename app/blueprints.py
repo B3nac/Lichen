@@ -305,7 +305,10 @@ def send_lootbundle_transaction():
 
 @delete_accounts_blueprint.route('/delete', methods=['POST'])
 def delete_accounts():
+    form = CreateAccountForm()
     if os.path.exists("accounts.json"):
         os.remove("accounts.json")
+        return render_template('create.html', account="new", form=form, year=year)
     else:
         flash("No accounts exist", 'warning')
+        return render_template('create.html', account="new", form=form, year=year)
