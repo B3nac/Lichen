@@ -1,5 +1,5 @@
 import pytest
-from flask import Flask, request
+from flask import Flask
 
 app_test = Flask(__name__)
 app_test.config['TESTING'] = True
