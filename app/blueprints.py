@@ -19,6 +19,7 @@ index_blueprint = Blueprint('index_blueprint', __name__)
 create_lootbundle_blueprint = Blueprint('create_lootbundle_blueprint', __name__)
 create_account_blueprint = Blueprint('create_account_blueprint', __name__)
 account_blueprint = Blueprint('account_blueprint', __name__)
+account_lookup_blueprint = Blueprint('account_lookup_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
@@ -178,7 +179,7 @@ def account():
             return render_template('unlock.html', account="current", form=form, year=year)
 
 
-@account_blueprint.route('/lookup', methods=['POST'])
+@account_lookup_blueprint.route('/lookup', methods=['POST'])
 def account_lookup():
     if request.method == 'POST':
         public_address_list = []
