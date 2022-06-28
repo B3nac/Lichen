@@ -10,7 +10,7 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 
 - Account wallet credentials are stored encrypted and decrypted only when the client is in use and unlocked by the account key.
 
-- Runs locally as a stand-alone application instead of in a web browser.
+- Runs locally as a stand-alone application.
 
 - Makes it easier to create "loot bundles" more explanation on what those are later. :)
 
@@ -56,6 +56,8 @@ Then start TheLootBoxClient.
 ~~- Add multiple account support.~~
 
 - Add unit tests.
+
+- Add Tor integration for account alerts
 
 ### Supporting development
 
