@@ -99,9 +99,6 @@ def create_account():
             except Exception as e:
                 flash(f"{e}, french.", 'warning')
                 return render_template('create.html', account="new", form=form, year=year)
-            except eth_utils.exceptions.ValidationError as e:
-                flash(f"{e}, toast.", 'warning')
-                return render_template('create.html', account="new", form=form, year=year)
         else:
             try:
                 form = AccountForm()
@@ -153,9 +150,11 @@ def account():
                 bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
             global unlocked
             unlocked = True
+            wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=public_address_list, form=form, year=year)
+                               account_list=public_address_list, form=form, year=year,
+                               account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
@@ -163,17 +162,23 @@ def account():
                 form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form)
         if unlocked:
-            account_unlock_key = request.form['account_key']
-            no_plaintext = Fernet(account_unlock_key)
-            with open('accounts.json', 'r') as accounts_from_file:
-                account_data_json = json.load(accounts_from_file)
-                form = AccountForm()
-                pub_address = account_data_json[int(0)]['public_address']
-                private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8'))
-                mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
+            try:
+                account_unlock_key = request.form['account_key']
+                no_plaintext = Fernet(account_unlock_key)
+                with open('accounts.json', 'r') as accounts_from_file:
+                    account_data_json = json.load(accounts_from_file)
+                    form = AccountForm()
+                    pub_address = account_data_json[int(0)]['public_address']
+                    private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8'))
+                    mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
                                                              encoding='utf8'))
+                    wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
+
+            except Exception as e:
+                flash(f"{e}", 'warning')
             return render_template('account.html', account="unlocked", pub_address=pub_address,
-                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year)
+                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year,
+                                   account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2))
         else:
             form = UnlockAccountForm()
             return render_template('unlock.html', account="current", form=form, year=year)

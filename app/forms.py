@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms.csrf.session import SessionCSRF
 from wtforms import StringField, SubmitField, validators, BooleanField, IntegerField
 from wtforms.widgets import PasswordInput
+from wtforms.validators import InputRequired, Length
 from datetime import timedelta
 import string
 import secrets
@@ -52,7 +53,7 @@ class AccountForm(FlaskForm):
 
 
 class UnlockAccountForm(FlaskForm):
-    account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
+    account_key = StringField('Account unlock key', validators=[InputRequired(), Length(min=44, max=44)])
     submit = SubmitField('Unlock account')
 
     class Meta:
