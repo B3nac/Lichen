@@ -19,7 +19,6 @@ class CreateAccountForm(FlaskForm):
     create_multiple = SubmitField('Create multiple accounts')
     multiple_account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
 
-
     class Meta:
         csrf = True
         csrf_class = SessionCSRF
@@ -39,7 +38,6 @@ class AccountForm(FlaskForm):
     account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)],
                               widget=PasswordInput(hide_value=True))
     account_id = IntegerField('Account id', [validators.Length(min=0, max=50)])
-
 
     class Meta:
         csrf = True
@@ -68,8 +66,8 @@ class UnlockAccountForm(FlaskForm):
 
 
 class SendEtherForm(FlaskForm):
-    to_public_address = StringField('To public address', [validators.Length(min=0, max=42)])
-    amount_of_ether = StringField('Amount of Ether to send', [validators.Length(min=0, max=42)])
+    to_public_address = StringField('To public address', validators=[InputRequired(), Length(min=0, max=42)])
+    amount_of_ether = StringField('Amount of Ether to send', validators=[InputRequired(), Length(min=0, max=42)])
     submit = SubmitField('Send Ether')
 
     class Meta:

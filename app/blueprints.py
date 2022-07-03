@@ -117,6 +117,9 @@ def create_account_callback(new_eth_account, mnemonic, wallet_key):
         pub_address = new_eth_account.address
         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic, encoding='utf8'))
+        accounts_list.append(pub_address)
+        accounts_list.append(new_eth_account.key.hex())
+        accounts_list.append(mnemonic)
         save_account_info(pub_address, mnemonic_phrase, private_key, account_id)
 
 
@@ -124,8 +127,7 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
     account_info = {'id': int(account_id), 'public_address': str(pub_address),
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
-    accounts_list.append(account_info)
-    json.dump(accounts_list, open('accounts.json', 'w'))
+    json.dump(account_info, open('accounts.json', 'w'))
 
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
