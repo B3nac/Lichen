@@ -30,6 +30,8 @@ year: str = str(datetime.now().year)
 
 accounts_list = []
 
+unlocked_account = []
+
 Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
@@ -48,8 +50,8 @@ def index():
             return render_template('unlock.html', account="current", form=form, year=year)
         if os.path.exists("accounts.json") and unlocked:
             form = AccountForm()
-            return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
-                                   private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], form=form)
+            return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], form=form)
 
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
@@ -117,9 +119,6 @@ def create_account_callback(new_eth_account, mnemonic, wallet_key):
         pub_address = new_eth_account.address
         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic, encoding='utf8'))
-        accounts_list.append(pub_address)
-        accounts_list.append(new_eth_account.key.hex())
-        accounts_list.append(mnemonic)
         save_account_info(pub_address, mnemonic_phrase, private_key, account_id)
 
 
@@ -127,7 +126,8 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
     account_info = {'id': int(account_id), 'public_address': str(pub_address),
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
-    json.dump(account_info, open('accounts.json', 'w'))
+    accounts_list.append(account_info)
+    json.dump(accounts_list, open('accounts.json', 'w'))
 
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
@@ -150,6 +150,9 @@ def account():
                 bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
             decrypt_mnemonic_phrase = no_plaintext.decrypt(
                 bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+            unlocked_account.append(pub_address)
+            unlocked_account.append(decrypt_private_key)
+            unlocked_account.append(decrypt_mnemonic_phrase)
             global unlocked
             unlocked = True
             wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
@@ -164,20 +167,15 @@ def account():
                 form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form)
         if unlocked:
-            try:
-                account_unlock_key = request.form['account_key']
-                no_plaintext = Fernet(account_unlock_key)
-                with open('accounts.json', 'r') as accounts_from_file:
-                    account_data_json = json.load(accounts_from_file)
-                    form = AccountForm()
-                    pub_address = account_data_json[int(0)]['public_address']
-                    private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8'))
-                    mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
-                                                             encoding='utf8'))
-                    wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
-
-            except Exception as e:
-                flash(f"{e}", 'warning')
+            # account_unlock_key = request.form['account_key']
+            # no_plaintext = Fernet(account_unlock_key)
+            # with open('accounts.json', 'r') as accounts_from_file:
+            # account_data_json = json.load(accounts_from_file)
+            form = AccountForm()
+            pub_address = unlocked_account[0]
+            private_key = unlocked_account[1]
+            mnemonic_phrase = unlocked_account[2]
+            wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year,
                                    account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2))
