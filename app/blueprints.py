@@ -130,21 +130,27 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
     json.dump(accounts_list, open('accounts.json', 'w'))
 
 
+def populate_public_address_list():
+    public_address_list = []
+    with open('accounts.json', 'r') as accounts_from_file:
+        account_data_json = json.load(accounts_from_file)
+        for account_id in range(10):
+            try:
+                if account_data_json[account_id]:
+                    public_address_list.append(account_data_json[account_id])
+            except IndexError as e:
+                flash(f"{e}, No account exists with id {account_id}.", 'warning')
+    return public_address_list
+
+
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 def account():
     if request.method == 'POST':
-        public_address_list = []
         form = AccountForm()
         account_unlock_key = request.form['account_key']
         no_plaintext = Fernet(account_unlock_key)
         with open('accounts.json', 'r') as accounts_from_file:
             account_data_json = json.load(accounts_from_file)
-            for account_id in range(10):
-                try:
-                    if account_data_json[account_id]:
-                        public_address_list.append(account_data_json[account_id])
-                except IndexError as e:
-                    flash(f"{e}, No account exists with id {account_id}.", 'warning')
             pub_address = account_data_json[int(0)]['public_address']
             decrypt_private_key = no_plaintext.decrypt(
                 bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
@@ -158,7 +164,7 @@ def account():
             wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=public_address_list, form=form, year=year,
+                               account_list=populate_public_address_list(), form=form, year=year,
                                account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
@@ -167,17 +173,14 @@ def account():
                 form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form)
         if unlocked:
-            # account_unlock_key = request.form['account_key']
-            # no_plaintext = Fernet(account_unlock_key)
-            # with open('accounts.json', 'r') as accounts_from_file:
-            # account_data_json = json.load(accounts_from_file)
             form = AccountForm()
             pub_address = unlocked_account[0]
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
             return render_template('account.html', account="unlocked", pub_address=pub_address,
-                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year,
+                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase,
+                                   account_list=populate_public_address_list(), form=form, year=year,
                                    account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2))
         else:
             form = UnlockAccountForm()
