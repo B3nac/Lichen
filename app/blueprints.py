@@ -190,19 +190,12 @@ def account():
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 def account_lookup():
     if request.method == 'POST':
-        public_address_list = []
         form = AccountForm()
         account_unlock_key = request.form['account_key']
         no_plaintext = Fernet(account_unlock_key)
         lookup_account = request.form['account_id']
         with open('accounts.json', 'r') as accounts_from_file:
             account_data_json = json.load(accounts_from_file)
-            for account_id in range(10):
-                try:
-                    if account_data_json[account_id]:
-                        public_address_list.append(account_data_json[account_id])
-                except IndexError as e:
-                    flash(f"{e}, No account exists with id {account_id}.", 'warning')
             pub_address = account_data_json[int(lookup_account)]['public_address']
             decrypt_private_key = no_plaintext.decrypt(
                 bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
@@ -210,12 +203,11 @@ def account_lookup():
                 bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=public_address_list, form=form, year=year)
+                               account_list=populate_public_address_list(), form=form, year=year)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
 def send():
-    global unlocked
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
