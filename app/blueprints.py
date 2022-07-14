@@ -1,19 +1,20 @@
 import json
 import os
-from eth_account import Account
-import eth_utils
 from datetime import datetime
 
-from cryptography.fernet import Fernet
+import eth_utils
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.exceptions import InvalidSignature
 from flask import Blueprint, render_template, request, flash
 
+from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm, CreateLootBundleForm
 from app.networks import (
     web3_arbitrum_rinkeby,
     dai_contract_rinkeby,
-    web3_local_rinkeby,
+    web3_local_kovan,
     lootbox_contract_arbitrum_bundle
 )
-from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm, CreateLootBundleForm
+from eth_account import Account
 
 index_blueprint = Blueprint('index_blueprint', __name__)
 create_lootbundle_blueprint = Blueprint('create_lootbundle_blueprint', __name__)
@@ -25,7 +26,6 @@ send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
 
-
 year: str = str(datetime.now().year)
 
 accounts_list = []
@@ -36,7 +36,7 @@ Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
 
-gas_price = web3_arbitrum_rinkeby.eth.gasPrice
+gas_price = web3_local_kovan.eth.gasPrice
 
 
 @index_blueprint.route('/', methods=['GET'])
@@ -88,7 +88,7 @@ def create_account():
                         number_of_accounts = 0
                     for number in range(number_of_accounts):
                         new_eth_account = Account.from_mnemonic(mnemonic_field_value,
-                                                            account_path=f"m/44'/60'/0'/0/{number}")
+                                                                account_path=f"m/44'/60'/0'/0/{number}")
                         pub_address = new_eth_account.address
                         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
                         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
@@ -96,10 +96,11 @@ def create_account():
                     multiple_accounts_list.clear()
                     form = AccountForm()
                     return render_template('account.html', account="new", pub_address=new_eth_account.address,
-                                       private_key=new_eth_account.key.hex(),
-                                       mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, year=year)
+                                           private_key=new_eth_account.key.hex(),
+                                           mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, form=form, year=year)
             except Exception as e:
                 flash(f"{e}, french.", 'warning')
+                form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form, year=year)
         else:
             try:
@@ -134,10 +135,9 @@ def populate_public_address_list():
     public_address_list = []
     with open('accounts.json', 'r') as accounts_from_file:
         account_data_json = json.load(accounts_from_file)
-        for account_id in range(10):
+        for account_id in account_data_json:
             try:
-                if account_data_json[account_id]:
-                    public_address_list.append(account_data_json[account_id])
+                public_address_list.append(account_data_json[account_id['id']])
             except IndexError as e:
                 flash(f"{e}, No account exists with id {account_id}.", 'warning')
     return public_address_list
@@ -146,23 +146,29 @@ def populate_public_address_list():
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 def account():
     if request.method == 'POST':
-        form = AccountForm()
-        account_unlock_key = request.form['account_key']
-        no_plaintext = Fernet(account_unlock_key)
-        with open('accounts.json', 'r') as accounts_from_file:
-            account_data_json = json.load(accounts_from_file)
-            pub_address = account_data_json[int(0)]['public_address']
-            decrypt_private_key = no_plaintext.decrypt(
-                bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
-            decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-            unlocked_account.append(pub_address)
-            unlocked_account.append(decrypt_private_key)
-            unlocked_account.append(decrypt_mnemonic_phrase)
-            global unlocked
-            unlocked = True
-            wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
-        return render_template('account.html', account="unlocked", pub_address=pub_address,
+        try:
+            form = AccountForm()
+            account_unlock_key = request.form['account_key']
+            no_plaintext = Fernet(account_unlock_key)
+            with open('accounts.json', 'r') as accounts_from_file:
+                account_data_json = json.load(accounts_from_file)
+                pub_address = account_data_json[int(0)]['public_address']
+                decrypt_private_key = no_plaintext.decrypt(
+                    bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
+                decrypt_mnemonic_phrase = no_plaintext.decrypt(
+                    bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+                unlocked_account.append(pub_address)
+                unlocked_account.append(decrypt_private_key)
+                unlocked_account.append(decrypt_mnemonic_phrase)
+                global unlocked
+                unlocked = True
+                wei_balance = web3_arbitrum_rinkeby.eth.get_balance(pub_address)
+        except (InvalidSignature, InvalidToken):
+            flash("Invalid account key", 'warning')
+            form = UnlockAccountForm()
+            return render_template('unlock.html', account="current", form=form, year=year)
+        else:
+            return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(), form=form, year=year,
                                account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2))
@@ -201,9 +207,12 @@ def account_lookup():
                 bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
             decrypt_mnemonic_phrase = no_plaintext.decrypt(
                 bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+        wei_balance = web3_arbitrum_rinkeby.eth.get_balance(unlocked_account[0])
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=populate_public_address_list(), form=form, year=year)
+                               account_list=populate_public_address_list(),
+                               account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2),
+                               form=form, year=year)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
@@ -214,45 +223,48 @@ def send():
                 flash("No accounts exist, please create an account.", 'warning')
                 form = CreateAccountForm()
                 return render_template('create.html', account="new", form=form)
-            if os.path.exists("accounts.json"):
-                if unlocked:
-                    form = SendEtherForm()
-                    return render_template('send.html', account="unlocked", form=form)
-                if not unlocked:
-                    form = UnlockAccountForm()
-                    return render_template('unlock.html', account="current", form=form)
+            else:
+                form = UnlockAccountForm()
+                return render_template('unlock.html', account="current", form=form, year=year)
+        if os.path.exists("accounts.json"):
+            if unlocked:
+                form = SendEtherForm()
+                return render_template('send.html', account="unlocked", form=form)
+            if not unlocked:
+                form = UnlockAccountForm()
+                return render_template('unlock.html', account="current", form=form)
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
 def send_transaction():
     if request.method == 'POST' and unlocked:
+        form = AccountForm()
         to_account = request.form['to_public_address']
         amount = request.form['amount_of_ether']
         try:
             tx = {
-                'nonce': web3_arbitrum_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'),
+                'nonce': web3_local_kovan.eth.get_transaction_count(unlocked_account[0], 'pending'),
                 'to': to_account,
-                'value': web3_arbitrum_rinkeby.toWei(amount, 'ether'),
-                'gas': web3_arbitrum_rinkeby.toWei('0.02', 'gwei'),
+                'value': web3_local_kovan.toWei(amount, 'ether'),
+                'gas': web3_local_kovan.toWei('0.03', 'gwei'),
                 'gasPrice': gas_price,
-                'from': accounts_list[0]
+                'from': unlocked_account[0]
             }
-            sign = web3_arbitrum_rinkeby.eth.account.sign_transaction(tx, accounts_list[1])
-            web3_arbitrum_rinkeby.eth.send_raw_transaction(sign.rawTransaction)
+            sign = web3_local_kovan.eth.account.sign_transaction(tx, unlocked_account[1])
+            web3_local_kovan.eth.send_raw_transaction(sign.rawTransaction)
+
             flash('Transaction sent successfully!', 'success')
         except Exception as e:
             flash(e, 'warning')
-        account_unlock_key = request.form['account_key']
-        no_plaintext = Fernet(account_unlock_key)
-        with open('accounts.json', 'r') as accounts_from_file:
-            account_data_json = json.load(accounts_from_file)
-            form = AccountForm()
-            pub_address = account_data_json[int(0)]['public_address']
-            private_key = no_plaintext.decrypt(bytes(account_data_json[int(0)]['private_key'], encoding='utf8'))
-            mnemonic_phrase = no_plaintext.decrypt(bytes(account_data_json[int(0)]['mnemonic_phrase'],
-                                                         encoding='utf8'))
-        return render_template('account.html', account="unlocked", pub_address=pub_address,
-                               private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year)
+        wei_balance = web3_arbitrum_rinkeby.eth.get_balance(unlocked_account[0])
+        return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+                               private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                               account_list=populate_public_address_list(),
+                               account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2),
+                               form=form, year=year)
+    else:
+        form = UnlockAccountForm()
+        return render_template('unlock.html', account="current", form=form, year=year)
 
 
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
@@ -279,29 +291,37 @@ def send_lootbundle_transaction():
         if unlocked:
             try:
                 # Approve transaction
-                approve = dai_contract_rinkeby.functions.approve('0xE742e87184f840a559d26356362979AA6de56E3E',
+                approve = dai_contract_rinkeby.functions.approve('0x978250529d86eCe23c054987CC1B8Dc7d6a2B9ce',
                                                                  10000000000000000000).buildTransaction(
-                    {'chainId': 4, 'gas': web3_local_rinkeby.toWei('0.02', 'gwei'),
-                     'nonce': web3_local_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'),
-                     'from': accounts_list[0]})
+                    {'chainId': 42, 'gas': web3_local_kovan.toWei('0.03', 'gwei'),
+                     'gasPrice': gas_price,
+                     'nonce': web3_local_kovan.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                     'from': unlocked_account[0]})
 
-                sign_approve = web3_arbitrum_rinkeby.eth.account.sign_transaction(approve, accounts_list[1])
-                web3_local_rinkeby.eth.send_raw_transaction(sign_approve.rawTransaction)
+                sign_approve = web3_local_kovan.eth.account.sign_transaction(approve, unlocked_account[1])
+                web3_local_kovan.eth.send_raw_transaction(sign_approve.rawTransaction)
 
                 # Create bundle
-                create_bundle = lootbox_contract_arbitrum_bundle.functions.createBundle(
-                    10000000000000000000).buildTransaction(
-                    {'chainId': 4, 'gas': web3_local_rinkeby.toWei('0.02', 'gwei'),
-                     'nonce': web3_local_rinkeby.eth.get_transaction_count(accounts_list[0], 'pending'),
-                     'from': accounts_list[0]})
+                create_bundle = lootbox_contract_arbitrum_bundle.functions.createBundle(10000000000000000000)\
+                    .buildTransaction(
+                    {'chainId': 42, 'gas': web3_local_kovan.toWei('0.03', 'gwei'),
+                     'gasPrice': gas_price,
+                     'nonce': web3_local_kovan.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                     'from': unlocked_account[0]})
 
-                sign_create_bundle = web3_arbitrum_rinkeby.eth.account.sign_transaction(create_bundle, accounts_list[1])
-                web3_arbitrum_rinkeby.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
+                sign_create_bundle = web3_local_kovan.eth.account.sign_transaction(create_bundle, unlocked_account[1])
+                web3_local_kovan.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
                 flash('LootBundle created successfully!', 'success')
             except Exception as e:
                 flash(e, 'warning')
-        return render_template('account.html', account="unlocked", pub_address=accounts_list[0],
-                               private_key=accounts_list[1], mnemonic_phrase=accounts_list[2], year=year)
+        form = AccountForm()
+        wei_balance = web3_arbitrum_rinkeby.eth.get_balance(unlocked_account[0])
+        return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+                               private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                               account_list=populate_public_address_list(),
+                               account_balance=round(web3_arbitrum_rinkeby.fromWei(wei_balance, 'ether'), 2),
+                               form=form, year=year,
+                               lootbundles=lootbox_contract_arbitrum_bundle.functions.allBundles().call())
 
 
 @delete_accounts_blueprint.route('/delete', methods=['POST'])
