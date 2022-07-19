@@ -19,6 +19,9 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 ### Start from binary
 
 
+
+---
+
 ### Setup from source
 
 I highly recommended creating a virtual environment to avoid dependency conflicts.

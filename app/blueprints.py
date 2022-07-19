@@ -23,6 +23,7 @@ account_blueprint = Blueprint('account_blueprint', __name__)
 account_lookup_blueprint = Blueprint('account_lookup_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
+replay_transaction_blueprint = Blueprint('replay_transaction_blueprint', __name__)
 send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
 
@@ -265,6 +266,32 @@ def send_transaction():
     else:
         form = UnlockAccountForm()
         return render_template('unlock.html', account="current", form=form, year=year)
+
+
+@replay_transaction_blueprint.route('/replay', methods=['POST'])
+def replay_transaction():
+    if request.method == 'POST' and unlocked:
+        tx = request.form['tx_hash']
+        tx_hash = web3_local_kovan.eth.get_transaction(tx)
+
+        replay_tx = {
+            'to': tx_hash['to'],
+            'from': tx_hash['from'],
+            'value': tx_hash['value'],
+            'data': tx_hash['input'],
+        }
+
+        try:
+            status = web3_local_kovan.eth.call(replay_tx, tx_hash.blockNumber - 1)
+            return render_template('transaction_data.html', account="unlocked", to=tx_hash['to'],
+                                   from_data=tx_hash['from'], value=tx_hash['value'], data=tx_hash['input'],
+                                   status=status, year=year)
+        except Exception as e:
+            flash(f"{e}", 'warning')
+            status = web3_local_kovan.eth.call(replay_tx, tx_hash.blockNumber - 1)
+            return render_template('transaction_data.html', account="unlocked", to=tx_hash['to'],
+                                   from_data=tx_hash['from'], value=tx_hash['value'], data=tx_hash['input'],
+                                   status=status, year=year)
 
 
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
