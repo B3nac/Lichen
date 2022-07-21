@@ -47,7 +47,8 @@ PyQt5-sip==12.10.1
 PyQtWebEngine==5.15.5
 PyQtWebEngine-Qt5==5.15.2
 pyrsistent==0.18.1
-pywebview==3.6.3
+pywebview[qt]==3.6.3
+vext.gi
 QtPy==2.1.0
 requests==2.27.1
 rlp==2.0.1

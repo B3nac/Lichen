@@ -15,6 +15,7 @@ from app.blueprints import (
     account_lookup_blueprint,
     send_ether_blueprint,
     send_transaction_blueprint,
+    replay_transaction_blueprint,
     send_lootbundle_blueprint,
     delete_accounts_blueprint
 )
@@ -26,6 +27,7 @@ app.register_blueprint(account_blueprint)
 app.register_blueprint(account_lookup_blueprint)
 app.register_blueprint(send_ether_blueprint)
 app.register_blueprint(send_transaction_blueprint)
+app.register_blueprint(replay_transaction_blueprint)
 app.register_blueprint(send_lootbundle_blueprint)
 app.register_blueprint(delete_accounts_blueprint)
 

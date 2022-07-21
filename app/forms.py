@@ -38,6 +38,8 @@ class AccountForm(FlaskForm):
     account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)],
                               widget=PasswordInput(hide_value=True))
     account_id = IntegerField('Account id', [validators.Length(min=0, max=50)])
+    tx_hash = StringField('Replay Transaction', [validators.Length(min=0, max=66)])
+    replay_transaction = SubmitField('Replay Transaction')
 
     class Meta:
         csrf = True
