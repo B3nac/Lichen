@@ -1,4 +1,4 @@
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 <link href="/static/bootstrap.min.css" rel="stylesheet">
 <link href="/static/TheLootBox.css" rel="stylesheet">
 <script src="/static/bootstrap.bundle.min.js"></script>
@@ -54,15 +54,8 @@
 <script src="/static/particles.js"></script>
 <form class="account_form">
     <div>
-        <div>
             <h3>Transaction data</h3>
-            <br>
-            <p>{{ to }}</p>
-            <p>{{ from_data }}</p>
-            <p>{{ value }}</p>
-            <p>{{ data }}</p>
-            <p>{{ status }}</p>
-        </div>
+            <textarea rows="10">{{ to }}{{ newlines }}{{ from_data }}{{ newlines }}{{ value }}{{ newlines }}{{ data }}{{ newlines }}{{ status }}</textarea>
     </div>
 </form>
 </body>

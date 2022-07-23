@@ -18,6 +18,12 @@ p {
   margin-top:10px;
   margin-bottom:10px;
 }
+textarea {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+}
 input {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
