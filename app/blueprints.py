@@ -188,7 +188,8 @@ def account():
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
                                    account_list=populate_public_address_list(), form=form, year=year,
-                                   account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2))
+                                   account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
+                                   lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
         else:
             form = UnlockAccountForm()
             return render_template('unlock.html', account="current", form=form, year=year)
@@ -213,7 +214,8 @@ def account_lookup():
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                               form=form, year=year)
+                               form=form, year=year, 
+                               lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
