@@ -200,18 +200,28 @@ def account():
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 def account_lookup():
     if request.method == 'POST':
-        form = AccountForm()
-        account_unlock_key = request.form['account_key']
-        no_plaintext = Fernet(account_unlock_key)
-        lookup_account = request.form['account_id']
-        with open('accounts.json', 'r') as accounts_from_file:
-            account_data_json = json.load(accounts_from_file)
-            pub_address = account_data_json[int(lookup_account)]['public_address']
-            decrypt_private_key = no_plaintext.decrypt(
-                bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
-            decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-        wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+        try:
+            form = AccountForm()
+            account_unlock_key = request.form['account_key']
+            no_plaintext = Fernet(account_unlock_key)
+            lookup_account = request.form['account_id']
+            with open('accounts.json', 'r') as accounts_from_file:
+                account_data_json = json.load(accounts_from_file)
+                pub_address = account_data_json[int(lookup_account)]['public_address']
+                decrypt_private_key = no_plaintext.decrypt(
+                    bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
+                decrypt_mnemonic_phrase = no_plaintext.decrypt(
+                    bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+            wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+        except (InvalidSignature, InvalidToken, ValueError):
+            flash("Invalid account key", 'warning')
+            form = AccountForm()
+            wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+            return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                                   account_list=populate_public_address_list(),
+                                   account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
+                                   form=form, year=year)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),

@@ -43,14 +43,14 @@ class CreateMultipleAccountsForm(FlaskForm):
 
 
 class AccountForm(FlaskForm):
-    create_from_mnemonic = StringField('Create account from mnemonic', [validators.Length(min=0, max=50)],
+    create_from_mnemonic = StringField('Create account from mnemonic', validators=[Length(min=0, max=50)],
                                        id='password')
     show_password = BooleanField('Show account private key', id='check')
     account_search = SubmitField('Lookup account')
-    account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)],
+    account_key = StringField('Account unlock key', validators=[Length(min=44, max=44)],
                               widget=PasswordInput(hide_value=True))
-    account_id = IntegerField('Account id', [validators.Length(min=0, max=50)])
-    tx_hash = StringField('Replay Transaction', [validators.Length(min=0, max=66)])
+    account_id = IntegerField('Account id', validators=[Length(min=0, max=50)])
+    tx_hash = StringField('Replay Transaction', validators=[Length(min=0, max=66)])
     replay_transaction = SubmitField('Replay Transaction')
 
     class Meta:

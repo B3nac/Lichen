@@ -119,8 +119,8 @@
     <div class="account_form">
       <h3>Other accounts</h3>
       <br>
+      <p>Public addresses</p>
       {% for account in account_list %}
-      <p>Public address</p>
       <input type="text" value="{{ account['public_address'] }}" size="35"><br><br>
       {% endfor %}
     </div>
