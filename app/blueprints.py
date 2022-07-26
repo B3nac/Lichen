@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
 from flask import Blueprint, render_template, request, flash
 
-from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm, CreateLootBundleForm
+from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm, CreateLootBundleForm, CreateMultipleAccountsForm
 from app.networks import (
     web3_arbitrum_goerli,
     dai_contract,
@@ -45,7 +45,8 @@ def index():
     if request.method == 'GET':
         if not os.path.exists("accounts.json"):
             form = CreateAccountForm()
-            return render_template('create.html', account="new", form=form, year=year)
+            form_create_multiple = CreateMultipleAccountsForm()
+            return render_template('create.html', account="new", form=form, form_create_multiple=form_create_multiple, year=year)
         if os.path.exists("accounts.json") and not unlocked:
             form = UnlockAccountForm()
             return render_template('unlock.html', account="current", form=form, year=year)
@@ -178,7 +179,8 @@ def account():
             if not os.path.exists("accounts.json"):
                 flash("No accounts exist, please create an account.", 'warning')
                 form = CreateAccountForm()
-                return render_template('create.html', account="new", form=form)
+                form_create_multiple = CreateMultipleAccountsForm()
+                return render_template('create.html', account="new", form=form, form_create_multiple=form_create_multiple)
         if unlocked:
             form = AccountForm()
             pub_address = unlocked_account[0]
@@ -214,7 +216,7 @@ def account_lookup():
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                               form=form, year=year, 
+                               form=form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 

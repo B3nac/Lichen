@@ -13,11 +13,23 @@ random = ''.join(secrets.choice(alphabet) for i in range(15))
 
 
 class CreateAccountForm(FlaskForm):
-    create_from_mnemonic = StringField('Create account from mnemonic')
-    number_of_accounts = StringField('Create multiple accounts from mnemonic')
     create = SubmitField('Create new account')
+
+    class Meta:
+        csrf = True
+        csrf_class = SessionCSRF
+        csrf_secret = random.encode()
+        csrf_time_limit = timedelta(minutes=20)
+
+        @property
+        def csrf_context(self):
+            return session
+
+
+class CreateMultipleAccountsForm(FlaskForm):
+    create_from_mnemonic = StringField('Create account from mnemonic', validators=[InputRequired()])
+    number_of_accounts = StringField('Create multiple accounts from mnemonic', validators=[InputRequired()])
     create_multiple = SubmitField('Create multiple accounts')
-    multiple_account_key = StringField('Account unlock key', [validators.Length(min=0, max=50)])
 
     class Meta:
         csrf = True

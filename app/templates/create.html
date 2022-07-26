@@ -63,9 +63,9 @@
         <div>
             <br>
             <p>Or import an account from an existing mnemonic</p>
-            <p>{{ form.create_from_mnemonic }}</p>
-            <p>Number of accounts {{ form.number_of_accounts }}</p>
-            {{ form.create_multiple(class="btn btn-primary")}}
+            <p>{{ form_create_multiple.create_from_mnemonic }}</p>
+            <p>Number of accounts {{ form_create_multiple.number_of_accounts }}</p>
+            {{ form_create_multiple.create_multiple(class="btn btn-primary")}}
         </div>
     </div>
 </form>

@@ -52,20 +52,16 @@
 <div id="particles-js"></div>
 <script src="/static/particles.min.js"></script>
 <script src="/static/particles.js"></script>
-<form method="POST" action="account" class="create_account_form">
+<div class="account_form">
+<form method="POST" action="account">
     {{ form.csrf_token }}
-    <div>
-        <div>
             <h3>Unlock account</h3>
             <br>
             <p>Unlock account with wallet key</p>
             <p>{{ form.account_key }}</p>
-            <div class="form-group">
             {{ form.submit(class="btn btn-primary")}}
-        </div>
-        </div>
-    </div>
 </form>
+</div>
 </body>
 <footer class="footer">
   <div class="row">
