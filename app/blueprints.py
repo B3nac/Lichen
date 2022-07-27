@@ -7,7 +7,15 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
 from flask import Blueprint, render_template, request, flash
 
-from app.forms import CreateAccountForm, UnlockAccountForm, AccountForm, SendEtherForm, CreateLootBundleForm, CreateMultipleAccountsForm
+from app.forms import (
+    CreateAccountForm,
+    UnlockAccountForm,
+    AccountForm,
+    SendEtherForm,
+    CreateLootBundleForm,
+    CreateMultipleAccountsForm,
+    LookupAccountForm
+)
 from app.networks import (
     web3_arbitrum_goerli,
     dai_contract,
@@ -170,9 +178,10 @@ def account():
             form = UnlockAccountForm()
             return render_template('unlock.html', account="current", form=form, year=year)
         else:
+            lookup_form = LookupAccountForm()
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=populate_public_address_list(), form=form, year=year,
+                               account_list=populate_public_address_list(), form=form, lookup_form=lookup_form, year=year,
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
@@ -183,13 +192,15 @@ def account():
                 return render_template('create.html', account="new", form=form, form_create_multiple=form_create_multiple)
         if unlocked:
             form = AccountForm()
+            lookup_form = LookupAccountForm()
             pub_address = unlocked_account[0]
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = web3_arbitrum_goerli.eth.get_balance(pub_address)
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
-                                   account_list=populate_public_address_list(), form=form, year=year,
+                                   account_list=populate_public_address_list(), form=form, lookup_form=lookup_form,
+                                   year=year,
                                    account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
                                    lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
         else:
@@ -222,11 +233,12 @@ def account_lookup():
                                    account_list=populate_public_address_list(),
                                    account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
                                    form=form, year=year)
+        lookup_form = LookupAccountForm()
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                               form=form, year=year,
+                               form=form, lookup_form=lookup_form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 

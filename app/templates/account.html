@@ -102,10 +102,10 @@
       <p>Loot bundles {{ lootbundles }}</p>
       <h3>View another account</h3>
       <p>Account id</p>
-      <p>{{ form.account_id }}</p>
+      <p>{{ lookup_form.account_id }}</p>
       <p>Account unlock key</p>
-      {{ form.account_key }}<br><br>
-      {{ form.account_search(class="btn btn-primary")}}<br><br>
+      {{ lookup_form.account_key }}<br><br>
+      {{ lookup_form.account_search(class="btn btn-primary")}}<br><br>
       </form>
       <form method="POST" action="replay">
         <p>Replay Transaction</p>
