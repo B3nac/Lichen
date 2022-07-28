@@ -48,7 +48,7 @@
 <form method="POST" action="send_lootbundle_transaction" class="create_account_form">
 <h3>Create LootBox</h3>
 <br>
-  {{ form.csrf_token }}
+  {{ create_lootbundle_form.csrf_token }}
   {% block content %}
     {% if account == "unlocked" %}
           <div>
@@ -57,7 +57,7 @@
             </label>
             <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" required>
           </div>
-          {{ form.submit(class="btn btn-primary")}}
+          {{ create_lootbundle_form.submit(class="btn btn-primary")}}
       </form>
 {% endif %}
 {% endblock content %}

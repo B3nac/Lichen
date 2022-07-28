@@ -48,14 +48,14 @@
 <form method="POST" action="send_transaction" class="create_account_form">
 <h3>Send Ether</h3>
 <br>
-  {{ form.csrf_token }}
+  {{ send_ether_form.csrf_token }}
   {% block content %}
     {% if account == "unlocked" %}
       <p>To public address</p>
-      <p>{{ form.to_public_address }}</p>
+      <p>{{ send_ether_form.to_public_address }}</p>
       <p>Amount of Ether</p>
-      <p>{{ form.amount_of_ether }}</p>
-         {{ form.submit(class="btn btn-primary")}}
+      <p>{{ send_ether_form.amount_of_ether }}</p>
+         {{ send_ether_form.submit(class="btn btn-primary")}}
       </form>
 {% endif %}
 {% endblock content %}

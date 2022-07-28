@@ -47,32 +47,32 @@ unlocked: bool = False
 
 gas_price = web3_arbitrum_goerli.eth.gasPrice
 
-
 @index_blueprint.route('/', methods=['GET'])
 def index():
     if request.method == 'GET':
         if not os.path.exists("accounts.json"):
-            form = CreateAccountForm()
+            create_account_form = CreateAccountForm()
             form_create_multiple = CreateMultipleAccountsForm()
-            return render_template('create.html', account="new", form=form, form_create_multiple=form_create_multiple, year=year)
+            return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
         if os.path.exists("accounts.json") and not unlocked:
-            form = UnlockAccountForm()
-            return render_template('unlock.html', account="current", form=form, year=year)
+            unlock_account_form = UnlockAccountForm()
+            return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists("accounts.json") and unlocked:
-            form = AccountForm()
+            account_form = AccountForm()
             return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
-                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], form=form)
+                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], account_form=account_form)
 
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
 def create_account():
+    account_form = AccountForm()
+    unlock_account_form = UnlockAccountForm()
+    create_account_form = CreateAccountForm()
     if request.method == 'GET':
         if os.path.exists("accounts.json"):
-            form = UnlockAccountForm()
-            return render_template('unlock.html', account="current", form=form, year=year)
+            return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
-            form = CreateAccountForm()
-            return render_template('create.html', form=form)
+            return render_template('create.html', create_account_form=create_account_form)
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
@@ -104,21 +104,18 @@ def create_account():
                         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
                         save_account_info(pub_address, mnemonic_phrase, private_key, number)
                     multiple_accounts_list.clear()
-                    form = AccountForm()
                     return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                            private_key=new_eth_account.key.hex(),
-                                           mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, form=form, year=year)
+                                           mnemonic_phrase=mnemonic_field_value, wallet_key=wallet_key, account_form=account_form, year=year)
             except Exception as e:
                 flash(f"{e}, french.", 'warning')
-                form = CreateAccountForm()
-                return render_template('create.html', account="new", form=form, year=year)
+                return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
         else:
             try:
-                form = AccountForm()
                 create_account_callback(new_eth_account, mnemonic, wallet_key)
                 return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                        private_key=new_eth_account.key.hex(),
-                                       mnemonic_phrase=mnemonic, wallet_key=wallet_key, form=form)
+                                       mnemonic_phrase=mnemonic, wallet_key=wallet_key, account_form=account_form)
             except eth_utils.exceptions.ValidationError as e:
                 flash(f"{e}, probably incorrect format.", 'warning')
 
@@ -155,9 +152,13 @@ def populate_public_address_list():
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 def account():
+    account_form = AccountForm()
+    create_account_form = CreateAccountForm()
+    lookup_account_form = LookupAccountForm()
+    unlock_account_form = UnlockAccountForm()
+    form_create_multiple = CreateMultipleAccountsForm()
     if request.method == 'POST':
         try:
-            form = AccountForm()
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
             with open('accounts.json', 'r') as accounts_from_file:
@@ -175,44 +176,38 @@ def account():
                 wei_balance = web3_arbitrum_goerli.eth.get_balance(pub_address)
         except (InvalidSignature, InvalidToken):
             flash("Invalid account key", 'warning')
-            form = UnlockAccountForm()
-            return render_template('unlock.html', account="current", form=form, year=year)
+            return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
-            lookup_form = LookupAccountForm()
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=populate_public_address_list(), form=form, lookup_form=lookup_form, year=year,
+                               account_list=populate_public_address_list(), account_form=account_form, lookup_account_form=lookup_account_form, year=year,
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
                 flash("No accounts exist, please create an account.", 'warning')
-                form = CreateAccountForm()
-                form_create_multiple = CreateMultipleAccountsForm()
-                return render_template('create.html', account="new", form=form, form_create_multiple=form_create_multiple)
+                return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
         if unlocked:
-            form = AccountForm()
-            lookup_form = LookupAccountForm()
             pub_address = unlocked_account[0]
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = web3_arbitrum_goerli.eth.get_balance(pub_address)
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
-                                   account_list=populate_public_address_list(), form=form, lookup_form=lookup_form,
+                                   account_list=populate_public_address_list(), account_form=account_form, lookup_account_form=lookup_account_form,
                                    year=year,
                                    account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
                                    lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
         else:
-            form = UnlockAccountForm()
-            return render_template('unlock.html', account="current", form=form, year=year)
+            return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
 
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 def account_lookup():
+    account_form = AccountForm()
+    lookup_account_form = LookupAccountForm()
     if request.method == 'POST':
         try:
-            form = AccountForm()
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
             lookup_account = request.form['account_id']
@@ -226,46 +221,44 @@ def account_lookup():
             wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key", 'warning')
-            form = AccountForm()
             wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
             return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=populate_public_address_list(),
                                    account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                                   form=form, year=year)
-        lookup_form = LookupAccountForm()
+                                   account_form=account_form, year=year)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                               form=form, lookup_form=lookup_form, year=year,
+                               account_form=account_form, lookup_account_form=lookup_account_form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
 def send():
+    unlock_account_form = UnlockAccountForm()
+    create_account_form = CreateAccountForm()
+    send_ether_form = SendEtherForm()
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
                 flash("No accounts exist, please create an account.", 'warning')
-                form = CreateAccountForm()
-                return render_template('create.html', account="new", form=form)
+                return render_template('create.html', account="new", create_account_form=create_account_form)
             else:
-                form = UnlockAccountForm()
-                return render_template('unlock.html', account="current", form=form, year=year)
+                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists("accounts.json"):
             if unlocked:
-                form = SendEtherForm()
-                return render_template('send.html', account="unlocked", form=form)
+                return render_template('send.html', account="unlocked", send_ether_form=send_ether_form)
             if not unlocked:
-                form = UnlockAccountForm()
-                return render_template('unlock.html', account="current", form=form)
+                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form)
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
 def send_transaction():
+    account_form = AccountForm()
+    unlock_account_form = UnlockAccountForm()
     if request.method == 'POST' and unlocked:
-        form = AccountForm()
         to_account = request.form['to_public_address']
         amount = request.form['amount_of_ether']
         try:
@@ -288,10 +281,9 @@ def send_transaction():
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(),
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                               form=form, year=year)
+                               account_form=account_form, year=year)
     else:
-        form = UnlockAccountForm()
-        return render_template('unlock.html', account="current", form=form, year=year)
+        return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
 
 @replay_transaction_blueprint.route('/replay', methods=['POST'])
@@ -324,24 +316,25 @@ def replay_transaction():
 
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
 def createlootbundle():
+    unlock_account_form = UnlockAccountForm()
+    create_lootbundle_form = CreateMultipleAccountsForm()
     global unlocked
     if request.method == 'GET':
         if not unlocked:
-            form = UnlockAccountForm()
             with open('accounts.json', 'r') as accounts_from_file:
                 account_data_json = json.load(accounts_from_file)
                 pub_address = account_data_json[int(0)]['public_address']
                 private_key = account_data_json[int(0)]['private_key']
                 mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
             return render_template('unlock.html', account="current", pub_address=pub_address,
-                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, form=form, year=year)
+                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, unlock_account_form=unlock_account_form, year=year)
         if unlocked:
-            form = CreateLootBundleForm()
-            return render_template('createlootbundle.html', account="unlocked", form=form, year=year)
+            return render_template('createlootbundle.html', account="unlocked", create_lootbundle_form=create_lootbundle_form, year=year)
 
 
 @send_lootbundle_blueprint.route('/send_lootbundle_transaction', methods=['POST'])
 def send_lootbundle_transaction():
+    account_form = AccountForm()
     if request.method == 'POST':
         if unlocked:
             try:
@@ -369,22 +362,21 @@ def send_lootbundle_transaction():
                 flash('LootBundle created successfully!', 'success')
             except Exception as e:
                 flash(e, 'warning')
-        form = AccountForm()
         wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
         return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(),
                                account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
-                               form=form, year=year,
+                               account_form=account_form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 
 @delete_accounts_blueprint.route('/delete', methods=['POST'])
 def delete_accounts():
-    form = CreateAccountForm()
+    create_account_form = CreateAccountForm()
     if os.path.exists("accounts.json"):
         os.remove("accounts.json")
-        return render_template('create.html', account="new", form=form, year=year)
+        return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
     else:
         flash("No accounts exist", 'warning')
-        return render_template('create.html', account="new", form=form, year=year)
+        return render_template('create.html', account="new", create_account_form=create_account_form, year=year)

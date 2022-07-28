@@ -52,13 +52,13 @@
 <script src="/static/particles.min.js"></script>
 <script src="/static/particles.js"></script>
 <form method="POST" action="create" class="create_account_form">
-    {{ form.csrf_token }}
+    {{ create_account_form.csrf_token }}
     <div class="form-row">
         <div>
             <h3>Create account</h3>
             <br>
             <p>Create a fresh account</p>
-            {{ form.create(class="btn btn-primary")}}
+            {{ create_account_form.create(class="btn btn-primary")}}
         </div>
         <div>
             <br>

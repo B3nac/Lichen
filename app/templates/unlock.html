@@ -54,12 +54,12 @@
 <script src="/static/particles.js"></script>
 <div class="account_form">
 <form method="POST" action="account">
-    {{ form.csrf_token }}
+    {{ unlock_account_form.csrf_token }}
             <h3>Unlock account</h3>
             <br>
             <p>Unlock account with wallet key</p>
-            <p>{{ form.account_key }}</p>
-            {{ form.submit(class="btn btn-primary")}}
+            <p>{{ unlock_account_form.account_key }}</p>
+            {{ unlock_account_form.submit(class="btn btn-primary")}}
 </form>
 </div>
 </body>

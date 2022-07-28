@@ -11,7 +11,6 @@ import secrets
 alphabet = string.ascii_letters + string.digits
 random = ''.join(secrets.choice(alphabet) for i in range(15))
 
-
 class CreateAccountForm(FlaskForm):
     create = SubmitField('Create new account')
 

@@ -102,15 +102,15 @@
       <p>Loot bundles {{ lootbundles }}</p>
       <h3>View another account</h3>
       <p>Account id</p>
-      <p>{{ lookup_form.account_id }}</p>
+      <p>{{ lookup_account_form.account_id }}</p>
       <p>Account unlock key</p>
-      {{ lookup_form.account_key }}<br><br>
-      {{ lookup_form.account_search(class="btn btn-primary")}}<br><br>
+      {{ lookup_account_form.account_key }}<br><br>
+      {{ lookup_account_form.account_search(class="btn btn-primary")}}<br><br>
       </form>
       <form method="POST" action="replay">
         <p>Replay Transaction</p>
-        {{ form.tx_hash }}<br><br>
-        {{ form.replay_transaction(class="btn btn-primary")}}<br><br>
+        {{ account_form.tx_hash }}<br><br>
+        {{ account_form.replay_transaction(class="btn btn-primary")}}<br><br>
       </form>
       <form method="POST" action="delete">
         <input type="submit" name="delete" value="Delete accounts" class="btn btn-primary" />
