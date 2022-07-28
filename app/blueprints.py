@@ -87,12 +87,12 @@ def create_account():
                     with open('accounts.json', 'r') as account_check:
                         current_accounts = json.load(account_check)
 
-                    for account in range(number_of_accounts):
+                    for number in range(number_of_accounts):
                         try:
-                            if current_accounts[account]:
+                            if current_accounts[number]:
                                 print("Account exists!!!!!")
                         except IndexError:
-                            multiple_accounts_list.append(account)
+                            multiple_accounts_list.append(number)
                 if not os.path.exists("accounts.json"):
                     if number_of_accounts == '':
                         number_of_accounts = 0
@@ -317,7 +317,7 @@ def replay_transaction():
 @create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
 def createlootbundle():
     unlock_account_form = UnlockAccountForm()
-    create_lootbundle_form = CreateMultipleAccountsForm()
+    create_lootbundle_form = CreateLootBundleForm()
     global unlocked
     if request.method == 'GET':
         if not unlocked:
