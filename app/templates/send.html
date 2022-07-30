@@ -44,8 +44,8 @@
 <div id="particles-js"></div>
 <script src="/static/particles.min.js"></script>
 <script src="/static/particles.js"></script>
-
-<form method="POST" action="send_transaction" class="create_account_form">
+<div class="account_form">
+<form method="POST" action="send_transaction">
 <h3>Send Ether</h3>
 <br>
   {{ send_ether_form.csrf_token }}
@@ -59,6 +59,7 @@
       </form>
 {% endif %}
 {% endblock content %}
+</div>
 </body>
 {% with messages = get_flashed_messages() %}
     {% if messages %}

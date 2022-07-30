@@ -44,8 +44,8 @@
 <div id="particles-js"></div>
 <script src="/static/particles.min.js"></script>
 <script src="/static/particles.js"></script>
-
-<form method="POST" action="send_lootbundle_transaction" class="create_account_form">
+<div class="account_form">
+<form method="POST" action="send_lootbundle_transaction">
 <h3>Create LootBox</h3>
 <br>
   {{ create_lootbundle_form.csrf_token }}
@@ -61,6 +61,7 @@
       </form>
 {% endif %}
 {% endblock content %}
+</div>
 </body>
 {% with messages = get_flashed_messages() %}
     {% if messages %}
