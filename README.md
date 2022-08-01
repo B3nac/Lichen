@@ -18,7 +18,7 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 
 ### Start from binary
 
-
+In progress.
 
 ---
 
@@ -58,7 +58,7 @@ Then start TheLootBoxClient.
 
 ~~- Add multiple account support.~~
 
-- Add unit tests.
+~~- Add unit tests.~~
 
 - Add Tor integration for account alerts
 
