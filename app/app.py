@@ -11,6 +11,7 @@ from app.blueprints import (
     index_blueprint,
     create_lootbundle_blueprint,
     create_account_blueprint,
+    create_fresh_account_blueprint,
     account_blueprint,
     account_lookup_blueprint,
     send_ether_blueprint,
@@ -23,6 +24,7 @@ from app.blueprints import (
 app.register_blueprint(index_blueprint)
 app.register_blueprint(create_lootbundle_blueprint)
 app.register_blueprint(create_account_blueprint)
+app.register_blueprint(create_fresh_account_blueprint)
 app.register_blueprint(account_blueprint)
 app.register_blueprint(account_lookup_blueprint)
 app.register_blueprint(send_ether_blueprint)

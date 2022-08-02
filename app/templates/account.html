@@ -109,8 +109,8 @@
       </form>
       <form method="POST" action="replay">
         <p>Replay Transaction</p>
-        {{ account_form.tx_hash }}<br><br>
-        {{ account_form.replay_transaction(class="btn btn-primary")}}<br><br>
+        {{ replay_transaction_form.tx_hash }}<br><br>
+        {{ replay_transaction_form.replay_transaction(class="btn btn-primary")}}<br><br>
       </form>
       <form method="POST" action="delete">
         <input type="submit" name="delete" value="Delete accounts" class="btn btn-primary" />

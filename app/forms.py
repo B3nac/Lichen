@@ -58,11 +58,7 @@ class LookupAccountForm(FlaskForm):
             return session
 
 
-class AccountForm(FlaskForm):
-    create_from_mnemonic = StringField('Create account from mnemonic', validators=[Length(min=0, max=50)],
-                                       id='password')
-    show_password = BooleanField('Show account private key', id='check')
-    account_search = SubmitField('Lookup account')
+class ReplayTransactionForm(FlaskForm):
     tx_hash = StringField('Replay Transaction', validators=[Length(min=0, max=66)])
     replay_transaction = SubmitField('Replay Transaction')
 

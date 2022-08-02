@@ -51,8 +51,8 @@
 <div id="particles-js"></div>
 <script src="/static/particles.min.js"></script>
 <script src="/static/particles.js"></script>
-<form method="POST" action="create" class="create_account_form">
-    {{ create_account_form.csrf_token }}
+<div class="account_form">
+<form method="POST" action="create_fresh">
     <div class="form-row">
         <div>
             <h3>Create account</h3>
@@ -60,6 +60,9 @@
             <p>Create a fresh account</p>
             {{ create_account_form.create(class="btn btn-primary")}}
         </div>
+        </div>
+</form>
+<form method="POST" action="create">
         <div>
             <br>
             <p>Or import an account from an existing mnemonic</p>
@@ -67,8 +70,8 @@
             <p>Number of accounts {{ form_create_multiple.number_of_accounts }}</p>
             {{ form_create_multiple.create_multiple(class="btn btn-primary")}}
         </div>
-    </div>
 </form>
+</div>
 </body>
 <footer class="footer">
   <div class="row">
