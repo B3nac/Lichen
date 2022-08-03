@@ -62,6 +62,8 @@ Then start TheLootBoxClient.
 
 - Add Tor integration for account alerts
 
+---
+
 ### Supporting development
 
 If you would like to send anything to my ens name `b3nac.eth` it will be appreciated, but is obviously not required.

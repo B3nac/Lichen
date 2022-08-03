@@ -71,6 +71,7 @@ def create_account():
 
     if request.method == 'GET':
         if os.path.exists("accounts.json"):
+            flash("Account already exists, please delete the old account.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
             return render_template('create.html', create_account_form=create_account_form, form_create_multiple=form_create_multiple)

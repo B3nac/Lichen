@@ -1,5 +1,5 @@
 from app.tests.conftest import app_test as flask_app
-from ..forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm
+from ..forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm, SendEtherForm
 
 class TestCreateAccountForm:
     def test_create_account_form(client):
@@ -31,6 +31,14 @@ class TestLookupAccountForm:
         context.push()
         LookupAccountForm.Meta.csrf = False
         form = LookupAccountForm(account_id='0', account_key='meep', submit=True)
+        assert form.validate_on_submit() == False
+
+class TestSendEtherForm:
+    def test_lookup_account_form(client):
+        context = flask_app.test_request_context('http://127.0.0.1:5000/send', method='POST')
+        context.push()
+        SendEtherForm.Meta.csrf = False
+        form = SendEtherForm(to_public_address='0', amount_of_ether='.001', submit=True)
         assert form.validate_on_submit() == False
 
 class TestReplayTransactionForm:
