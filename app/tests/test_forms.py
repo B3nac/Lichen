@@ -3,7 +3,7 @@ from ..forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccounts
 
 class TestCreateAccountForm:
     def test_create_account_form(client):
-        context = flask_app.test_request_context('http://127.0.0.1:5000/create', method='POST')
+        context = flask_app.test_request_context('http://127.0.0.1:5000/create_fresh', method='POST')
         context.push()
         CreateAccountForm.Meta.csrf = False
         form = CreateAccountForm(submit=True)
@@ -11,7 +11,7 @@ class TestCreateAccountForm:
 
 class TestCreateMultipleAccountsForm:
     def test_create_multiple_accounts_form(client):
-        context = flask_app.test_request_context('http://127.0.0.1:5000/account', method='POST')
+        context = flask_app.test_request_context('http://127.0.0.1:5000/create', method='POST')
         context.push()
         CreateMultipleAccountsForm.Meta.csrf = False
         form = CreateMultipleAccountsForm(create_from_mnemonic='0', number_of_accounts=5, submit=True)

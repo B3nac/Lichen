@@ -111,16 +111,6 @@ def create_account():
                 flash(f"{e}, french.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple, year=year)
-        else:
-            try:
-                create_account_callback(new_eth_account, mnemonic, wallet_key)
-                return render_template('account.html', account="new", pub_address=new_eth_account.address,
-                                       private_key=new_eth_account.key.hex(),
-                                       mnemonic_phrase=mnemonic, wallet_key=wallet_key,
-                                       create_account_form=create_account_form,
-                                       form_create_multiple=form_create_multiple)
-            except eth_utils.exceptions.ValidationError as e:
-                flash(f"{e}, probably incorrect format.", 'warning')
 
 
 @create_fresh_account_blueprint.route('/create_fresh', methods=['POST'])
