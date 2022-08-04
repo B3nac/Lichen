@@ -1,8 +1,8 @@
 from app.tests.conftest import app_test as flask_app
-from ..forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm, SendEtherForm
+from ..forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm, SendEtherForm, CreateLootBundleForm
 
 class TestCreateAccountForm:
-    def test_create_account_form(client):
+    def test_create_account_form(self):
         context = flask_app.test_request_context('http://127.0.0.1:5000/create_fresh', method='POST')
         context.push()
         CreateAccountForm.Meta.csrf = False
@@ -10,7 +10,7 @@ class TestCreateAccountForm:
         assert form.validate_on_submit() == False
 
 class TestCreateMultipleAccountsForm:
-    def test_create_multiple_accounts_form(client):
+    def test_create_multiple_accounts_form(self):
         context = flask_app.test_request_context('http://127.0.0.1:5000/create', method='POST')
         context.push()
         CreateMultipleAccountsForm.Meta.csrf = False
@@ -18,7 +18,7 @@ class TestCreateMultipleAccountsForm:
         assert form.validate_on_submit() == False
 
 class TestUnlockAccountForm:
-    def test_unlock_account_form(client):
+    def test_unlock_account_form(self):
         context = flask_app.test_request_context('http://127.0.0.1:5000/account', method='POST')
         context.push()
         UnlockAccountForm.Meta.csrf = False
@@ -26,7 +26,7 @@ class TestUnlockAccountForm:
         assert form.validate_on_submit() == False
 
 class TestLookupAccountForm:
-    def test_lookup_account_form(client):
+    def test_lookup_account_form(self):
         context = flask_app.test_request_context('http://127.0.0.1:5000/lookup', method='POST')
         context.push()
         LookupAccountForm.Meta.csrf = False
@@ -34,7 +34,7 @@ class TestLookupAccountForm:
         assert form.validate_on_submit() == False
 
 class TestSendEtherForm:
-    def test_lookup_account_form(client):
+    def test_lookup_account_form(self):
         context = flask_app.test_request_context('http://127.0.0.1:5000/send', method='POST')
         context.push()
         SendEtherForm.Meta.csrf = False
@@ -42,9 +42,17 @@ class TestSendEtherForm:
         assert form.validate_on_submit() == False
 
 class TestReplayTransactionForm:
-    def test_lookup_account_form(client):
+    def test_lookup_account_form(self):
         context = flask_app.test_request_context('http://127.0.0.1:5000/replay', method='POST')
         context.push()
         ReplayTransactionForm.Meta.csrf = False
         form = ReplayTransactionForm(tx_hash='0', submit=True)
+        assert form.validate_on_submit() == False
+
+class TestCreateLootBundleForm:
+    def test_create_lootbundle_form(self):
+        context = flask_app.test_request_context('http://127.0.0.1:5000/createlootbundle', method='POST')
+        context.push()
+        CreateLootBundleForm.Meta.csrf = False
+        form = CreateLootBundleForm(submit=True)
         assert form.validate_on_submit() == False
