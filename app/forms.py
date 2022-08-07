@@ -59,7 +59,7 @@ class LookupAccountForm(FlaskForm):
 
 
 class ReplayTransactionForm(FlaskForm):
-    tx_hash = StringField('Replay Transaction', validators=[Length(min=0, max=66)])
+    tx_hash = StringField('Replay Transaction', validators=[InputRequired(), Length(min=0, max=66)])
     replay_transaction = SubmitField('Replay Transaction')
 
     class Meta:

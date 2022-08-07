@@ -80,7 +80,7 @@ def create_account():
         mnemonic_field_value = request.form['create_from_mnemonic']
         number_of_accounts = request.form['number_of_accounts']
         wallet_key = Fernet.generate_key().decode("utf-8")
-        if mnemonic_field_value and number_of_accounts:
+        if ' ' in mnemonic_field_value and number_of_accounts:
             multiple_accounts_list = []
             no_plaintext = Fernet(wallet_key)
             number_of_accounts = int(number_of_accounts)
@@ -112,6 +112,10 @@ def create_account():
                 flash(f"{e}, french.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple, year=year)
+        else:
+            flash("Invalid mnemonic phrase", 'warning')
+            return render_template('create.html', account="new", create_account_form=create_account_form,
+                                   form_create_multiple=form_create_multiple, year=year)
 
 
 @create_fresh_account_blueprint.route('/create_fresh', methods=['POST'])
