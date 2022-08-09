@@ -16,9 +16,25 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 
 ---
 
-### Start from binary
+### Start from binary (In progress)
 
-In progress.
+Download thelootboxwallet binary from releases.
+
+Make the binary executable.
+
+`chmod +x thelootboxwallet-release`
+
+Start the binary with a bash alias.
+
+`alias thelootboxwallet='~/path/to/thelootboxwallet-release'`
+
+Or like this.
+
+`./thelootboxwallet-release`
+
+To background the process.
+
+`./thelootboxwallet-release &`
 
 ---
 
