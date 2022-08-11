@@ -18,7 +18,6 @@ from app.forms import (
 )
 from app.networks import (
     web3_arbitrum_goerli,
-    dai_contract,
     snek_contract_arbitrum_goerli,
     lootbox_contract_arbitrum_bundle_factory
 )
@@ -47,6 +46,8 @@ Account.enable_unaudited_hdwallet_features()
 unlocked: bool = False
 
 gas_price = web3_arbitrum_goerli.eth.gasPrice
+
+network = web3_arbitrum_goerli
 
 @index_blueprint.route('/', methods=['GET'])
 def index():

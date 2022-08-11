@@ -3,7 +3,6 @@ from web3 import Web3
 # Add configuration for different test nets
 
 web3_local_mainnet = Web3(Web3.HTTPProvider('http://127.0.0.1:8888'))
-web3_arbitrum_goerli = Web3(Web3.HTTPProvider('https://rinkeby.arbitrum.io/rpc'))
 web3_arbitrum_goerli = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
 
 from web3.middleware import geth_poa_middleware
