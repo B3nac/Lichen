@@ -47,8 +47,6 @@ unlocked: bool = False
 
 gas_price = web3_arbitrum_goerli.eth.gasPrice
 
-network = web3_arbitrum_goerli
-
 @index_blueprint.route('/', methods=['GET'])
 def index():
     if request.method == 'GET':
