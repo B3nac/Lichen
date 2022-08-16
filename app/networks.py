@@ -1,9 +1,19 @@
+import os.path
+
 from web3 import Web3
+import configparser
+
+if os.path.exists("config.ini"):
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    network = str(config['DEFAULT']['network'])
+else:
+    network = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
 
 # Add configuration for different test nets
 
 web3_local_mainnet = Web3(Web3.HTTPProvider('http://127.0.0.1:8888'))
-web3_arbitrum_goerli = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
+web3_arbitrum_goerli = Web3(Web3.HTTPProvider(str(network)))
 
 from web3.middleware import geth_poa_middleware
 
