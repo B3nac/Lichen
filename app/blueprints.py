@@ -17,7 +17,7 @@ from app.forms import (
     LookupAccountForm
 )
 from app.networks import (
-    web3_arbitrum_goerli,
+    network,
     snek_contract_arbitrum_goerli,
     lootbox_contract_arbitrum_bundle_factory
 )
@@ -45,7 +45,7 @@ Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
 
-gas_price = web3_arbitrum_goerli.eth.gasPrice
+gas_price = network.eth.gasPrice
 
 @index_blueprint.route('/', methods=['GET'])
 def index():
@@ -187,7 +187,7 @@ def account():
                 unlocked_account.append(decrypt_mnemonic_phrase)
                 global unlocked
                 unlocked = True
-                wei_balance = web3_arbitrum_goerli.eth.get_balance(pub_address)
+                wei_balance = network.eth.get_balance(pub_address)
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -196,7 +196,7 @@ def account():
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                lookup_account_form=lookup_account_form, year=year,
-                               account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2))
+                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
@@ -206,13 +206,13 @@ def account():
             pub_address = unlocked_account[0]
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
-            wei_balance = web3_arbitrum_goerli.eth.get_balance(pub_address)
+            wei_balance = network.eth.get_balance(pub_address)
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
                                    account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                    lookup_account_form=lookup_account_form,
                                    year=year,
-                                   account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
+                                   account_balance=round(network.fromWei(wei_balance, 'ether'), 2),
                                    lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
         else:
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -233,19 +233,19 @@ def account_lookup():
                     bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
                 decrypt_mnemonic_phrase = no_plaintext.decrypt(
                     bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-            wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+            wei_balance = network.eth.get_balance(unlocked_account[0])
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key", 'warning')
-            wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+            wei_balance = network.eth.get_balance(unlocked_account[0])
             return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=populate_public_address_list(),
-                                   account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
+                                   account_balance=round(network.fromWei(wei_balance, 'ether'), 2),
                                    year=year)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
-                               account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2),
+                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2),
                                lookup_account_form=lookup_account_form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
@@ -276,26 +276,26 @@ def send_transaction():
         amount = request.form['amount_of_ether']
         try:
             tx = {
-                'nonce': web3_arbitrum_goerli.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
                 'to': to_account,
-                'value': web3_arbitrum_goerli.toWei(amount, 'ether'),
-                'gas': web3_arbitrum_goerli.toWei('0.03', 'gwei'),
+                'value': network.toWei(amount, 'ether'),
+                'gas': network.toWei('0.03', 'gwei'),
                 'gasPrice': gas_price,
                 'from': unlocked_account[0]
             }
-            sign = web3_arbitrum_goerli.eth.account.sign_transaction(tx, unlocked_account[1])
-            web3_arbitrum_goerli.eth.send_raw_transaction(sign.rawTransaction)
+            sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
+            network.eth.send_raw_transaction(sign.rawTransaction)
 
             flash('Transaction sent successfully!', 'success')
         except Exception as e:
             flash(e, 'warning')
         lookup_account_form = LookupAccountForm()
         replay_transaction_form = ReplayTransactionForm()
-        wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+        wei_balance = network.eth.get_balance(unlocked_account[0])
         return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                               account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2), year=year)
+                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2), year=year)
     else:
         unlock_account_form = UnlockAccountForm()
         return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -306,7 +306,7 @@ def replay_transaction():
     if request.method == 'POST' and unlocked:
         tx = request.form['tx_hash']
         try:
-            tx_hash = web3_arbitrum_goerli.eth.get_transaction(tx)
+            tx_hash = network.eth.get_transaction(tx)
 
             replay_tx = {
                 'to': tx_hash['to'],
@@ -315,7 +315,7 @@ def replay_transaction():
                 'data': tx_hash['input'],
             }
 
-            status = web3_arbitrum_goerli.eth.call(replay_tx, tx_hash.blockNumber - 1)
+            status = network.eth.call(replay_tx, tx_hash.blockNumber - 1)
             newlines = "\n\n"
             newline = "\n"
             return render_template('transaction_data.html', account="unlocked", to=tx_hash['to'],
@@ -352,34 +352,34 @@ def send_lootbundle_transaction():
                 # Approve transaction
                 approve = snek_contract_arbitrum_goerli.functions.approve('0x587B0a60a97a60e9B00dbAE03Bd50DffF2cAbB78',
                                                                  10000000000000000000).buildTransaction(
-                    {'chainId': 421613, 'gas': web3_arbitrum_goerli.toWei('0.03', 'gwei'),
+                    {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
                      'gasPrice': gas_price,
-                     'nonce': web3_arbitrum_goerli.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                     'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
                      'from': unlocked_account[0]})
 
-                sign_approve = web3_arbitrum_goerli.eth.account.sign_transaction(approve, unlocked_account[1])
-                web3_arbitrum_goerli.eth.send_raw_transaction(sign_approve.rawTransaction)
+                sign_approve = network.eth.account.sign_transaction(approve, unlocked_account[1])
+                network.eth.send_raw_transaction(sign_approve.rawTransaction)
 
                 # Create bundle
                 create_bundle = lootbox_contract_arbitrum_bundle_factory.functions.createBundle(10000000000000000000)\
                     .buildTransaction(
-                    {'chainId': 421613, 'gas': web3_arbitrum_goerli.toWei('0.03', 'gwei'),
+                    {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
                      'gasPrice': gas_price,
-                     'nonce': web3_arbitrum_goerli.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                     'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
                      'from': unlocked_account[0]})
 
-                sign_create_bundle = web3_arbitrum_goerli.eth.account.sign_transaction(create_bundle, unlocked_account[1])
-                web3_arbitrum_goerli.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
+                sign_create_bundle = network.eth.account.sign_transaction(create_bundle, unlocked_account[1])
+                network.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
                 flash('LootBundle created successfully!', 'success')
             except Exception as e:
                 flash(e, 'warning')
         lookup_account_form = LookupAccountForm()
         replay_transaction_form = ReplayTransactionForm()
-        wei_balance = web3_arbitrum_goerli.eth.get_balance(unlocked_account[0])
+        wei_balance = network.eth.get_balance(unlocked_account[0])
         return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                               account_balance=round(web3_arbitrum_goerli.fromWei(wei_balance, 'ether'), 2), year=year,
+                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2), year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 
