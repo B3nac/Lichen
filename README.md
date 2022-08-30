@@ -18,6 +18,12 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 
 ### Start from binary (In progress)
 
+#### Linux dependencies
+
+Sometimes you have to install libxcb-xinerama0 on debian based distros.
+
+`sudo apt install libxcb-xinerama0`
+
 Download thelootboxwallet binary from releases.
 
 Make the binary executable.
