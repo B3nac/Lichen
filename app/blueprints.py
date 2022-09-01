@@ -255,11 +255,12 @@ def send():
     unlock_account_form = UnlockAccountForm()
     create_account_form = CreateAccountForm()
     send_ether_form = SendEtherForm()
+    form_create_multiple = CreateMultipleAccountsForm()
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
                 flash("No accounts exist, please create an account.", 'warning')
-                return render_template('create.html', account="new", create_account_form=create_account_form)
+                return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
             else:
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists("accounts.json"):
@@ -333,11 +334,17 @@ def createlootbundle():
     global unlocked
     if request.method == 'GET':
         if not unlocked:
-            with open('accounts.json', 'r') as accounts_from_file:
-                account_data_json = json.load(accounts_from_file)
-                pub_address = account_data_json[int(0)]['public_address']
-                private_key = account_data_json[int(0)]['private_key']
-                mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
+            try:
+                with open('accounts.json', 'r') as accounts_from_file:
+                    account_data_json = json.load(accounts_from_file)
+                    pub_address = account_data_json[int(0)]['public_address']
+                    private_key = account_data_json[int(0)]['private_key']
+                    mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
+            except Exception:
+                create_account_form=CreateAccountForm()
+                form_create_multiple=CreateMultipleAccountsForm()
+                return render_template('create.html', account="new", create_account_form=create_account_form,
+                                       form_create_multiple=form_create_multiple)
             return render_template('unlock.html', account="current", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase, unlock_account_form=unlock_account_form, year=year)
         if unlocked:

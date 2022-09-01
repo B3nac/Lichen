@@ -16,6 +16,21 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 
 ---
 
+### Install from .deb file release
+
+
+Download the deb file from the latest release.
+
+https://github.com/TheLootBox-xyz/TheLootBoxWallet/releases
+
+Run the install command.
+
+`sudo dpkg -i thelootboxwallet-release`
+
+Start thelootboxwallet from `usr/bin/thelootboxwallet`.
+
+`/usr/bin/thelootboxwallet/start`
+
 ### Start from binary (In progress)
 
 #### Linux dependencies
