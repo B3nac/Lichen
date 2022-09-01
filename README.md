@@ -2,7 +2,7 @@
 
 Built on Linux for Linux and ported to other operating systems in the future. No ads, no user tracking, and security is a priority. Protect your loot with TheLootBoxWallet! 
 
-TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets.
+TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets.
 
 ---
 
