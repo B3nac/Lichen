@@ -18,6 +18,13 @@ TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a f
 
 ### Install from .deb file release
 
+#### Dependencies
+
+You might need the following dependencies for GTK.
+
+`sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0`
+
+`pip3 install pycairo PyGObject`
 
 Download the deb file from the latest release.
 
@@ -30,6 +37,8 @@ Run the install command.
 Start thelootboxwallet from `usr/bin/thelootboxwallet`.
 
 `/usr/bin/thelootboxwallet/start`
+
+---
 
 ### Start from binary (In progress)
 
