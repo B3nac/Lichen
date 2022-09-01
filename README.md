@@ -44,7 +44,7 @@ Start thelootboxwallet from `usr/bin/thelootboxwallet`.
 
 #### Linux dependencies
 
-Sometimes you have to install libxcb-xinerama0 on debian based distros.
+Sometimes you have to install `libxcb-xinerama0` on debian based distros.
 
 `sudo apt install libxcb-xinerama0`
 
@@ -91,6 +91,19 @@ Then start TheLootBoxClient.
 `python3 start.py`
 
 ---
+
+### Customize default settings
+
+You can customize the default network and ethereum account with a `config.ini` file.
+
+Example `config.ini` file:
+
+```bash
+[DEFAULT]
+
+network = https://goerli-rollup.arbitrum.io/rpc
+default_address = your_public_ethereum_address
+```
 
 ### Preview screenshot
 
