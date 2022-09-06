@@ -10,9 +10,9 @@ TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a 
 
 - Account wallet credentials are stored encrypted and decrypted only when the client is in use and unlocked by the account key.
 
-- Runs locally as a stand-alone application.
+- Runs locally as a self-contained stand-alone application.
 
-- Makes it easier to create "loot bundles" more explanation on what those are later. :)
+- Makes it easier to create "loot bundles" more explanation on what those are later.
 
 ---
 
@@ -26,17 +26,17 @@ You might need the following dependencies for GTK.
 
 `pip3 install pycairo PyGObject`
 
-Download the deb file from the latest release.
+#### Steps to install
+
+- Download the deb file from the latest release.
 
 https://github.com/TheLootBox-xyz/TheLootBoxWallet/releases
 
-Run the install command.
+- Run the install command.
 
 `sudo dpkg -i thelootboxwallet-release`
 
-Start thelootboxwallet from `usr/bin/thelootboxwallet`.
-
-`/usr/bin/thelootboxwallet/start`
+- Start thelootboxwallet from `/usr/bin/thelootboxwallet/start`.
 
 ---
 
@@ -48,21 +48,25 @@ Sometimes you have to install `libxcb-xinerama0` on debian based distros.
 
 `sudo apt install libxcb-xinerama0`
 
-Download thelootboxwallet binary from releases.
+#### Steps to run
 
-Make the binary executable.
+- Download thelootboxwallet binary from releases.
+
+https://github.com/TheLootBox-xyz/TheLootBoxWallet/releases
+
+- Make the binary executable.
 
 `chmod +x thelootboxwallet-release`
 
-Start the binary with a bash alias.
+- Start the binary with a bash alias.
 
 `alias thelootboxwallet='~/path/to/thelootboxwallet-release'`
 
-Or like this.
+- Or like this.
 
 `./thelootboxwallet-release`
 
-To background the process.
+- To background the process.
 
 `./thelootboxwallet-release &`
 
