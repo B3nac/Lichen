@@ -343,7 +343,7 @@ def createlootbundle():
             except Exception:
                 create_account_form=CreateAccountForm()
                 form_create_multiple=CreateMultipleAccountsForm()
-                flash("No accounts exists, please create a account", 'warning')
+                flash("No accounts exists, please create a account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple)
             return render_template('unlock.html', account="current", pub_address=pub_address,
@@ -398,5 +398,5 @@ def delete_accounts():
         os.remove("accounts.json")
         return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
     else:
-        flash("No accounts exist", 'warning')
+        flash("No accounts exist.", 'warning')
         return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
