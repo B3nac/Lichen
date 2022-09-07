@@ -98,7 +98,7 @@ Then start TheLootBoxClient.
 
 ### Customize default settings
 
-You can customize the default network and ethereum account with a `config.ini` file.
+You can customize the default network and ethereum account with a `config.ini` file. If you don't have a `config.ini` file TheLootBoxWallet will use the first public address created as the default address.
 
 Example `config.ini` file:
 
