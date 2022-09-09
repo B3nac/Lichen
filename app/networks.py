@@ -7,6 +7,7 @@ if os.path.exists("config.ini"):
     config = configparser.ConfigParser()
     config.read('config.ini')
     network = Web3(Web3.HTTPProvider(config['DEFAULT']['network']))
+    address = config['DEFAULT']['default_address']
 else:
     network = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
 

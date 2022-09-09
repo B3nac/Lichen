@@ -7,6 +7,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
 from flask import Blueprint, render_template, request, flash
 
+import app.networks
 from app.forms import (
     CreateAccountForm,
     UnlockAccountForm,
@@ -46,6 +47,12 @@ Account.enable_unaudited_hdwallet_features()
 unlocked: bool = False
 
 gas_price = network.eth.gasPrice
+
+def get_address_from_config():
+    if os.path.exists("config.ini"):
+        return app.networks.address
+
+default_address: str = get_address_from_config()
 
 @index_blueprint.route('/', methods=['GET'])
 def index():
