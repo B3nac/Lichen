@@ -195,6 +195,8 @@ def account():
                 global unlocked
                 unlocked = True
                 wei_balance = network.eth.get_balance(pub_address)
+                if default_address:
+                    pub_address = default_address
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -210,7 +212,10 @@ def account():
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
         if unlocked:
-            pub_address = unlocked_account[0]
+            if default_address:
+                pub_address = default_address
+            else:
+                pub_address = unlocked_account[0]
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = network.eth.get_balance(pub_address)
@@ -282,6 +287,10 @@ def send_transaction():
     if request.method == 'POST' and unlocked:
         to_account = request.form['to_public_address']
         amount = request.form['amount_of_ether']
+        if default_address:
+            pub_address = default_address
+        else:
+            pub_address = unlocked_account[0]
         try:
             tx = {
                 'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
@@ -289,7 +298,7 @@ def send_transaction():
                 'value': network.toWei(amount, 'ether'),
                 'gas': network.toWei('0.03', 'gwei'),
                 'gasPrice': gas_price,
-                'from': unlocked_account[0]
+                'from': pub_address
             }
             sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
             network.eth.send_raw_transaction(sign.rawTransaction)
@@ -363,6 +372,10 @@ def createlootbundle():
 def send_lootbundle_transaction():
     if request.method == 'POST':
         if unlocked:
+            if default_address:
+                pub_address = default_address
+            else:
+                pub_address = unlocked_account[0]
             try:
                 # Approve transaction
                 approve = snek_contract_arbitrum_goerli.functions.approve('0x587B0a60a97a60e9B00dbAE03Bd50DffF2cAbB78',
@@ -370,7 +383,7 @@ def send_lootbundle_transaction():
                     {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
                      'gasPrice': gas_price,
                      'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
-                     'from': unlocked_account[0]})
+                     'from': pub_address})
 
                 sign_approve = network.eth.account.sign_transaction(approve, unlocked_account[1])
                 network.eth.send_raw_transaction(sign_approve.rawTransaction)
@@ -381,7 +394,7 @@ def send_lootbundle_transaction():
                     {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
                      'gasPrice': gas_price,
                      'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
-                     'from': unlocked_account[0]})
+                     'from': pub_address})
 
                 sign_create_bundle = network.eth.account.sign_transaction(create_bundle, unlocked_account[1])
                 network.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
