@@ -65,7 +65,11 @@ def index():
             unlock_account_form = UnlockAccountForm()
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists("accounts.json") and unlocked:
-            return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+            if default_address:
+                pub_address = default_address
+            else:
+                pub_address = unlocked_account[0]
+            return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2])
 
 
@@ -212,12 +216,11 @@ def account():
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
         if unlocked:
-            if default_address:
-                pub_address = default_address
-            else:
-                pub_address = unlocked_account[0]
+            pub_address = unlocked_account[0]
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
+            if default_address:
+                pub_address = default_address
             wei_balance = network.eth.get_balance(pub_address)
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
@@ -293,7 +296,7 @@ def send_transaction():
             pub_address = unlocked_account[0]
         try:
             tx = {
-                'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                'nonce': network.eth.get_transaction_count(pub_address, 'pending'),
                 'to': to_account,
                 'value': network.toWei(amount, 'ether'),
                 'gas': network.toWei('0.03', 'gwei'),
@@ -308,8 +311,8 @@ def send_transaction():
             flash(e, 'warning')
         lookup_account_form = LookupAccountForm()
         replay_transaction_form = ReplayTransactionForm()
-        wei_balance = network.eth.get_balance(unlocked_account[0])
-        return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+        wei_balance = network.eth.get_balance(pub_address)
+        return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
                                account_balance=round(network.fromWei(wei_balance, 'ether'), 2), year=year)
@@ -376,13 +379,14 @@ def send_lootbundle_transaction():
                 pub_address = default_address
             else:
                 pub_address = unlocked_account[0]
+            wei_balance = network.eth.get_balance(pub_address)
             try:
                 # Approve transaction
                 approve = snek_contract_arbitrum_goerli.functions.approve('0x587B0a60a97a60e9B00dbAE03Bd50DffF2cAbB78',
                                                                  10000000000000000000).buildTransaction(
                     {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
                      'gasPrice': gas_price,
-                     'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                     'nonce': network.eth.get_transaction_count(pub_address, 'pending'),
                      'from': pub_address})
 
                 sign_approve = network.eth.account.sign_transaction(approve, unlocked_account[1])
@@ -393,7 +397,7 @@ def send_lootbundle_transaction():
                     .buildTransaction(
                     {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
                      'gasPrice': gas_price,
-                     'nonce': network.eth.get_transaction_count(unlocked_account[0], 'pending'),
+                     'nonce': network.eth.get_transaction_count(pub_address, 'pending'),
                      'from': pub_address})
 
                 sign_create_bundle = network.eth.account.sign_transaction(create_bundle, unlocked_account[1])
@@ -401,10 +405,9 @@ def send_lootbundle_transaction():
                 flash('LootBundle created successfully!', 'success')
             except Exception as e:
                 flash(e, 'warning')
-        lookup_account_form = LookupAccountForm()
-        replay_transaction_form = ReplayTransactionForm()
-        wei_balance = network.eth.get_balance(unlocked_account[0])
-        return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
+            lookup_account_form = LookupAccountForm()
+            replay_transaction_form = ReplayTransactionForm()
+            return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
                                account_balance=round(network.fromWei(wei_balance, 'ether'), 2), year=year,
