@@ -198,11 +198,11 @@ def account():
                 unlocked_account.append(decrypt_mnemonic_phrase)
                 global unlocked
                 unlocked = True
-                wei_balance = network.eth.get_balance(pub_address)
                 if default_address:
                     pub_address = default_address
+                wei_balance = network.eth.get_balance(pub_address)
         except (InvalidSignature, InvalidToken, ValueError):
-            flash("Invalid account key", 'warning')
+            flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
             return render_template('account.html', account="unlocked", pub_address=pub_address,
