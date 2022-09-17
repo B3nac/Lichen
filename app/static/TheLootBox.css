@@ -46,7 +46,7 @@ input {
 .flask_alert_container {
   pointer-events: all;
   position:absolute;
-  top: 74.5%;
+  top: 65.5%;
 }
 .form_body {
   display: flex;
@@ -104,6 +104,7 @@ input {
   position: fixed;
   text-align: center;
   right: 0;bottom:0;left:0;
+  height: 20vh;
   padding-top: 20;
   background-color: #000000;
   pointer-events: all;
