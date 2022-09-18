@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from web3.exceptions import TransactionNotFound
 
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
@@ -341,7 +342,7 @@ def replay_transaction():
             return render_template('transaction_data.html', account="unlocked", to=tx_hash['to'],
                                    from_data=tx_hash['from'], value=tx_hash['value'],
                                    data=tx_hash['input'], status=status, newlines=newlines, newline=newline, year=year)
-        except ValueError as e:
+        except (ValueError, TransactionNotFound) as e:
             flash(f"{e}", 'warning')
             return render_template('transaction_data.html', account="unlocked", year=year)
 
