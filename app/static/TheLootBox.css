@@ -1,12 +1,18 @@
+.header-logo img {
+max-height: 500px;
+max-width: 150px;
+}
 html {
   height:100%;
   width:100%;
   margin:0;
 }
 body {
+  padding-top: 50px;
+  height: 100%;
+  overflow-y: scroll;
   background-color:transparent;
   pointer-events: none;
-  margin: 0;
 }
 H5 {
   color: #FFFFFF;
@@ -58,8 +64,8 @@ input {
   background-color: #000000;
 }
 .vertical-center {
-  min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
-  min-height: 100vh; /* These two lines are counted as one :-)       */
+  min-height: 100%;
+  min-height: 100vh;
   display: flex; 
   align-items: center;
   text-align: center;
@@ -105,7 +111,7 @@ input {
   text-align: center;
   right: 0;bottom:0;left:0;
   height: 20vh;
-  padding-top: 20;
+  padding-top: 20px;
   background-color: #000000;
   pointer-events: all;
 }
