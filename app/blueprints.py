@@ -47,7 +47,7 @@ Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
 
-gas_price = network.eth.gasPrice
+gas_price = network.eth.gas_price
 
 def get_address_from_config():
     if os.path.exists("config.ini"):
