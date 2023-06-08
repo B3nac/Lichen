@@ -106,7 +106,7 @@ div.scroll {
   pointer-events: all;
   overflow-y: scroll;
 }
-.create_account_form {
+.form_style {
   height: 40vh;
   width: 40vw;
   background: #000000;

@@ -69,7 +69,7 @@
   <script src="/static/particles.js"></script>
   {% block content %}
     {% if account == "new" %}
-  <div class="account_form container">
+  <div class="form_style container">
     <form>
       <h3>Account</h3>
       <br>
@@ -86,7 +86,7 @@
     </form>
     </div>
     {% elif account == "unlocked" %}
-    <div class="account_form container">
+    <div class="form_style container">
     <form method="POST" action="lookup">
       <h3>Account</h3>
       <br>
@@ -116,7 +116,7 @@
         <input type="submit" name="delete" value="Delete accounts" class="btn btn-primary" />
       </form>
     </div>
-    <div class="account_form">
+    <div class="form_style container">
       <h3>Other accounts</h3>
       <br>
       <p>Public addresses</p>

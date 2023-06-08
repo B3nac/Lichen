@@ -210,7 +210,7 @@ def account():
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                lookup_account_form=lookup_account_form, year=year,
-                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2))
+                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists("accounts.json"):
@@ -228,7 +228,7 @@ def account():
                                    account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                    lookup_account_form=lookup_account_form,
                                    year=year,
-                                   account_balance=round(network.fromWei(wei_balance, 'ether'), 2),
+                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
                                    lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
         else:
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -256,12 +256,12 @@ def account_lookup():
             return render_template('account.html', account="unlocked", pub_address=unlocked_account[0],
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=populate_public_address_list(),
-                                   account_balance=round(network.fromWei(wei_balance, 'ether'), 2),
+                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
                                    year=year)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
-                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2),
+                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
                                lookup_account_form=lookup_account_form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
@@ -299,8 +299,8 @@ def send_transaction():
             tx = {
                 'nonce': network.eth.get_transaction_count(pub_address, 'pending'),
                 'to': to_account,
-                'value': network.toWei(amount, 'ether'),
-                'gas': network.toWei('0.03', 'gwei'),
+                'value': network.to_wei(amount, 'ether'),
+                'gas': network.to_wei('0.03', 'gwei'),
                 'gasPrice': gas_price,
                 'from': pub_address
             }
@@ -316,7 +316,7 @@ def send_transaction():
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2), year=year)
+                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
     else:
         unlock_account_form = UnlockAccountForm()
         return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -396,7 +396,7 @@ def send_lootbundle_transaction():
                 # Create bundle
                 create_bundle = lootbox_contract_arbitrum_bundle_factory.functions.createBundle(10000000000000000000)\
                     .buildTransaction(
-                    {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
+                    {'chainId': 421613, 'gas': network.to_wei('0.03', 'gwei'),
                      'gasPrice': gas_price,
                      'nonce': network.eth.get_transaction_count(pub_address, 'pending'),
                      'from': pub_address})
@@ -411,7 +411,7 @@ def send_lootbundle_transaction():
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                               account_balance=round(network.fromWei(wei_balance, 'ether'), 2), year=year,
+                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 
