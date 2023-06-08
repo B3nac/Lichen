@@ -11,9 +11,9 @@ body {
   padding-top: 50px;
   height: 100%;
   overflow-y: scroll;
-  background-color:transparent;
+  /*background-color:transparent;*/
   pointer-events: none;
-}
+  }
 H5 {
   color: #FFFFFF;
 }
@@ -52,7 +52,18 @@ input {
 .flask_alert_container {
   pointer-events: all;
   position:absolute;
-  top: 65.5%;
+  top: 55.5%;
+}
+div.scroll {
+    width: max-content;
+    height: 70%;
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 2px solid #5cb85c;
+    border-radius: 7px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    text-align: center;
 }
 .form_body {
   display: flex;
@@ -93,7 +104,6 @@ input {
   padding: 20px;
   color: #FFFFFF;
   pointer-events: all;
-  overflow: overlay;
   overflow-y: scroll;
 }
 .create_account_form {
@@ -106,15 +116,14 @@ input {
   padding: 20px;
   color: #FFFFFF;
   pointer-events: all;
-  overflow: overlay;
   overflow-y: scroll;
 }
-.footer {
+footer {
+  padding-top: 20px;
   position: fixed;
   text-align: center;
   right: 0;bottom:0;left:0;
   height: 20vh;
-  padding-top: 20px;
   background-color: #000000;
   pointer-events: all;
   overflow-y: scroll;
@@ -123,7 +132,8 @@ input {
   max-width: 40px;
   max-height: 40px;
 }
-.header {
+header {
+  position: absolute;
   pointer-events: all;
 }
 .navbar-brand img {

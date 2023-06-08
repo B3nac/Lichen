@@ -4,14 +4,9 @@
 <script src="/static/bootstrap.bundle.min.js"></script>
 <script src="/static/jquery.min.js"></script>
 <script src="/static/flash_alerts.js"></script>
-<script>
-    function delete_flash(flash){
-        $(flash).remove()
-    }
-</script>
 <header class="header">
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <div class="container-fluid">
+    <div class="container">
       <a class="header-logo" href="/"><img src="/static/images/TheLootBoxLogo.png"></a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -35,23 +30,25 @@
           </li>
         </ul>
           <button class="btn btn-outline-success img-size"><a href="https://github.com/TheLootBox-xyz"><img src="/static/images/github.png"></a></button>
-	  <button class="btn btn-outline-success img-size"><a href="https://discord.gg/pd4wupphDe"><img src="/static/images/Discord.png"></a></button>
+          <button class="btn btn-outline-success img-size"><a href="https://discord.gg/pd4wupphDe"><img src="/static/images/Discord.png"></a></button>
       </div>
     </div>
   </nav>
-  </header>
+</header>
+<script>
+    function delete_flash(flash){
+        $(flash).remove()
+    }
+</script>
  <div class="flask_alert_container" onclick="delete_flash(this)">
     {% for catagory, message in get_flashed_messages(with_categories=true) %}
     <div class="alert alert-{{ catagory }}">
       {{ message }}
     </div>
     {% endfor %}
-  </div>
+ </div>
 <body class="form_body">
-<div id="particles-js"></div>
-<script src="/static/particles.min.js"></script>
-<script src="/static/particles.js"></script>
-<div class="account_form">
+<div class="create_account_form">
 <form method="POST" action="create_fresh">
     <div class="form-row">
         <div>
@@ -60,7 +57,7 @@
             <p>Create a fresh account</p>
             {{ create_account_form.create(class="btn btn-primary")}}
         </div>
-        </div>
+    </div>
 </form>
 <form method="POST" action="create">
         <div>
