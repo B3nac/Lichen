@@ -80,34 +80,6 @@ div.scroll {
   align-items: center;
   text-align: center;
 }
-<<<<<<< HEAD
-=======
-.new_account_form {
-  height: 60vh;
-  width: 35vw;
-  background: #000000;
-  border: 2px solid #5cb85c;
-  border-radius: 10px;
-  -webkit-border-radius: 10px;
-  padding: 20px;
-  color: #FFFFFF;
-  pointer-events: all;
-  overflow: overlay;
-  overflow-y: scroll;
-}
-.account_form {
-  height: 55vh;
-  width: 45vw;
-  background: #000000;
-  border: 2px solid #5cb85c;
-  border-radius: 10px;
-  -webkit-border-radius: 10px;
-  padding: 20px;
-  color: #FFFFFF;
-  pointer-events: all;
-  overflow-y: scroll;
-}
->>>>>>> 745bdd8ab9b58ba423167b4cc14d8042711db9a5
 .form_style {
   height: 40vh;
   width: 40vw;
