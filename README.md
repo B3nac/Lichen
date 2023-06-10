@@ -123,8 +123,6 @@ default_address = your_public_ethereum_address
 
 ~~- Add unit tests.~~
 
-- Add Tor integration for account alerts
-
 ---
 
 ### Supporting development
