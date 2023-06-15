@@ -1,3 +1,6 @@
+#Existing accounts
+accounts.json
+
 # Poetry
 poetry.lock
 pyproject.toml

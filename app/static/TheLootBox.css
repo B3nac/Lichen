@@ -50,8 +50,7 @@ input {
 }
 .flask_alert_container {
   pointer-events: all;
-  position:absolute;
-  top: 55.5%;
+  vertical-align: top;
 }
 div.scroll {
     width: max-content;
