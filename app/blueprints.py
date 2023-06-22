@@ -200,7 +200,8 @@ def account():
                 global unlocked
                 unlocked = True
                 if default_address:
-                    pub_address = default_address
+                    if pub_address == default_address:
+                        pub_address = default_address
                 wei_balance = network.eth.get_balance(pub_address)
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key.", 'warning')
