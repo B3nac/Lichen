@@ -50,7 +50,8 @@ input {
 }
 .flask_alert_container {
   pointer-events: all;
-  vertical-align: top;
+  display: flex;
+  align-items: center;
 }
 div.scroll {
     width: max-content;
