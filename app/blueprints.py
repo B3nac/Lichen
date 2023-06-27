@@ -83,11 +83,11 @@ def create_account():
     form_create_multiple = CreateMultipleAccountsForm()
 
     if request.method == 'GET':
-        if os.path.exists("accounts.json"):
+        if os.path.exists("accounts.json") and account != "unlocked":
             flash("Account already exists, please delete the old account.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
-            return render_template('create.html', create_account_form=create_account_form, form_create_multiple=form_create_multiple)
+            return render_template('create.html', create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
@@ -144,9 +144,10 @@ def create_fresh():
                                private_key=new_eth_account.key.hex(),
                                mnemonic_phrase=mnemonic, wallet_key=wallet_key,
                                create_account_form=create_account_form,
-                               form_create_multiple=form_create_multiple)
+                               form_create_multiple=form_create_multiple, year=year)
         except eth_utils.exceptions.ValidationError as e:
             flash(f"{e}, probably incorrect format.", 'warning')
+
 
 def create_account_callback(new_eth_account, mnemonic, wallet_key):
     if not os.path.exists("accounts.json"):
@@ -236,6 +237,7 @@ def account():
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 def account_lookup():
     lookup_account_form = LookupAccountForm()
+    replay_transaction_form = ReplayTransactionForm()
     if request.method == 'POST':
         try:
             account_unlock_key = request.form['account_key']
@@ -257,12 +259,14 @@ def account_lookup():
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=populate_public_address_list(),
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
+                                   lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
+                                   lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call(),
                                    year=year)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                               lookup_account_form=lookup_account_form, year=year,
+                               lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, year=year,
                                lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
 
 
@@ -276,14 +280,14 @@ def send():
         if not unlocked:
             if not os.path.exists("accounts.json"):
                 flash("No accounts exist, please create an account.", 'warning')
-                return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
+                return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
             else:
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists("accounts.json"):
             if unlocked:
-                return render_template('send.html', account="unlocked", send_ether_form=send_ether_form)
+                return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
             if not unlocked:
-                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form)
+                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
@@ -362,7 +366,7 @@ def createlootbundle():
                 form_create_multiple=CreateMultipleAccountsForm()
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form,
-                                       form_create_multiple=form_create_multiple)
+                                       form_create_multiple=form_create_multiple, year=year)
             return render_template('unlock.html', account="current", pub_address=pub_address,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase, unlock_account_form=unlock_account_form, year=year)
         if unlocked:
