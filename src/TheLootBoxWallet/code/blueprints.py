@@ -8,8 +8,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
 from flask import Blueprint, render_template, request, flash
 
-import app.networks
-from app.forms import (
+from TheLootBoxWallet.code.forms import (
     CreateAccountForm,
     UnlockAccountForm,
     ReplayTransactionForm,
@@ -18,7 +17,10 @@ from app.forms import (
     CreateMultipleAccountsForm,
     LookupAccountForm
 )
-from app.networks import (
+from TheLootBoxWallet.code.networks import (
+    __location__,
+    config_file,
+    address,
     network,
     snek_contract_arbitrum_goerli,
     lootbox_contract_arbitrum_bundle_factory
@@ -49,9 +51,12 @@ unlocked: bool = False
 
 gas_price = network.eth.gas_price
 
+accounts_file =  "/accounts.json"
+
+
 def get_pub_address_from_config():
-    if os.path.exists("config.ini"):
-        default_address = app.networks.address
+    if os.path.exists(__location__ + config_file):
+        default_address = address
         if default_address == unlocked_account[0]:
             return default_address
         else:
@@ -61,14 +66,14 @@ def get_pub_address_from_config():
 @index_blueprint.route('/', methods=['GET'])
 def index():
     if request.method == 'GET':
-        if not os.path.exists("accounts.json"):
+        if not os.path.exists(__location__ + accounts_file):
             create_account_form = CreateAccountForm()
             form_create_multiple = CreateMultipleAccountsForm()
             return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
-        if os.path.exists("accounts.json") and not unlocked:
+        if os.path.exists(__location__ + accounts_file) and not unlocked:
             unlock_account_form = UnlockAccountForm()
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
-        if os.path.exists("accounts.json") and unlocked:
+        if os.path.exists(__location__ + accounts_file) and unlocked:
             lookup_account_form = LookupAccountForm()
             replay_transaction_form = ReplayTransactionForm()
             default_address: str = get_pub_address_from_config()
@@ -83,7 +88,7 @@ def create_account():
     form_create_multiple = CreateMultipleAccountsForm()
 
     if request.method == 'GET':
-        if os.path.exists("accounts.json") and account != "unlocked":
+        if os.path.exists(__location__ + accounts_file) and account != "unlocked":
             flash("Account already exists, please delete the old account.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
@@ -98,8 +103,8 @@ def create_account():
             no_plaintext = Fernet(wallet_key)
             number_of_accounts = int(number_of_accounts)
             try:
-                if os.path.exists("accounts.json"):
-                    with open('accounts.json', 'r') as account_check:
+                if os.path.exists(__location__ + accounts_file):
+                    with open(__location__ + accounts_file, 'r') as account_check:
                         current_accounts = json.load(account_check)
                     for number in range(number_of_accounts):
                         try:
@@ -107,7 +112,7 @@ def create_account():
                                 continue
                         except IndexError:
                             multiple_accounts_list.append(number)
-                if not os.path.exists("accounts.json"):
+                if not os.path.exists(__location__ + accounts_file):
                     if number_of_accounts == '':
                         number_of_accounts = 0
                     for number in range(number_of_accounts):
@@ -150,7 +155,7 @@ def create_fresh():
 
 
 def create_account_callback(new_eth_account, mnemonic, wallet_key):
-    if not os.path.exists("accounts.json"):
+    if not os.path.exists(__location__ + accounts_file):
         account_id = 0
         no_plaintext = Fernet(wallet_key)
         pub_address = new_eth_account.address
@@ -164,12 +169,12 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
     accounts_list.append(account_info)
-    json.dump(accounts_list, open('accounts.json', 'w'))
+    json.dump(accounts_list, open(__location__ + accounts_file, 'w'))
 
 
 def populate_public_address_list():
     public_address_list = []
-    with open('accounts.json', 'r') as accounts_from_file:
+    with open(__location__ + accounts_file, 'r') as accounts_from_file:
         account_data_json = json.load(accounts_from_file)
         for account_id in account_data_json:
             try:
@@ -190,7 +195,7 @@ def account():
         try:
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
-            with open('accounts.json', 'r') as accounts_from_file:
+            with open(__location__ + accounts_file, 'r') as accounts_from_file:
                 account_data_json = json.load(accounts_from_file)
                 pub_address = account_data_json[int(0)]['public_address']
                 decrypt_private_key = no_plaintext.decrypt(
@@ -215,7 +220,7 @@ def account():
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
-            if not os.path.exists("accounts.json"):
+            if not os.path.exists(__location__ + accounts_file):
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
         if unlocked:
@@ -243,7 +248,7 @@ def account_lookup():
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
             lookup_account = request.form['account_id']
-            with open('accounts.json', 'r') as accounts_from_file:
+            with open(__location__ + accounts_file, 'r') as accounts_from_file:
                 account_data_json = json.load(accounts_from_file)
                 pub_address = account_data_json[int(lookup_account)]['public_address']
                 decrypt_private_key = no_plaintext.decrypt(
@@ -278,12 +283,12 @@ def send():
     form_create_multiple = CreateMultipleAccountsForm()
     if request.method == 'GET':
         if not unlocked:
-            if not os.path.exists("accounts.json"):
+            if not os.path.exists(__location__ + accounts_file):
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
             else:
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
-        if os.path.exists("accounts.json"):
+        if os.path.exists(__location__ + accounts_file):
             if unlocked:
                 return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
             if not unlocked:
@@ -356,7 +361,7 @@ def createlootbundle():
     if request.method == 'GET':
         if not unlocked:
             try:
-                with open('accounts.json', 'r') as accounts_from_file:
+                with open(__location__ + accounts_file, 'r') as accounts_from_file:
                     account_data_json = json.load(accounts_from_file)
                     pub_address = account_data_json[int(0)]['public_address']
                     private_key = account_data_json[int(0)]['private_key']
@@ -416,8 +421,8 @@ def send_lootbundle_transaction():
 @delete_accounts_blueprint.route('/delete', methods=['POST'])
 def delete_accounts():
     create_account_form = CreateAccountForm()
-    if os.path.exists("accounts.json"):
-        os.remove("accounts.json")
+    if os.path.exists(__location__ + accounts_file):
+        os.remove(__location__ + accounts_file)
         return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
     else:
         flash("No accounts exist.", 'warning')

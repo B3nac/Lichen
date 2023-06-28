@@ -2,9 +2,13 @@ import os.path
 from web3 import Web3
 import configparser
 
-if os.path.exists("config.ini"):
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+config_file = "/config.ini"
+
+if os.path.exists(__location__ + config_file):
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read(__location__ + config_file)
     network = Web3(Web3.HTTPProvider(config['DEFAULT']['network']))
     address = config['DEFAULT']['default_address']
 else:

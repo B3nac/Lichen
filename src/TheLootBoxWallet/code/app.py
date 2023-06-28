@@ -7,7 +7,7 @@ alphabet = string.ascii_letters + string.digits
 app = Flask(__name__)
 app.config['SECRET_KEY'] = ''.join(secrets.choice(alphabet) for i in range(15))
 
-from app.blueprints import (
+from TheLootBoxWallet.code.blueprints import (
     index_blueprint,
     create_lootbundle_blueprint,
     create_account_blueprint,

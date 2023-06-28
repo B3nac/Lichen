@@ -1,0 +1,158 @@
+# This project was generated with Unknown using template: https://github.com/beeware/briefcase-template@v0.3.14
+[tool.briefcase]
+project_name = "TheLootBoxWallet"
+bundle = "com.thelootboxwallet"
+version = "0.2.0"
+url = ""
+license = ""
+author = "Kyle Benac"
+author_email = "thelootbox@skiff.com"
+
+[tool.briefcase.app.TheLootBoxWallet]
+formal_name = "TheLootBoxWallet"
+description = "TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a focus on privacy and security."
+long_description = """More details about the app should go here.
+"""
+icon = "src/TheLootBoxWallet/resources/TheLootBoxWallet"
+sources = [
+    "src/TheLootBoxWallet",
+]
+test_sources = [
+    "tests",
+]
+
+requires = [
+    "flask",
+    "flask-wtf",
+    "web3",
+    "cryptography",
+    "setuptools"
+]
+test_requires = [
+    "pytest",
+]
+
+[tool.briefcase.app.TheLootBoxWallet.macOS]
+requires = [
+    "toga-cocoa~=0.3.1",
+    "std-nslog~=1.0.0"
+]
+
+[tool.briefcase.app.TheLootBoxWallet.linux]
+requires = [
+    "toga-gtk~=0.3.1",
+]
+
+[tool.briefcase.app.TheLootBoxWallet.linux.system.debian]
+system_requires = [
+    # Needed to compile pycairo wheel
+    "libcairo2-dev",
+    # Needed to compile PyGObject wheel
+    "libgirepository1.0-dev",
+]
+
+system_runtime_requires = [
+    # Needed to provide GTK
+    "libgtk-3-0",
+    # Needed to provide GI bindings to GTK
+    "libgirepository-1.0-1",
+    "gir1.2-gtk-3.0",
+    # Needed to provide WebKit2 at runtime
+    # "libwebkit2gtk-4.0-37",
+    # "gir1.2-webkit2-4.0",
+]
+
+[tool.briefcase.app.TheLootBoxWallet.linux.system.rhel]
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo-gobject-devel",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection-devel",
+]
+
+system_runtime_requires = [
+    # Needed to support Python bindings to GTK
+    "gobject-introspection",
+    # Needed to provide GTK
+    "gtk3",
+    # Needed to provide WebKit2 at runtime
+    # "webkit2gtk3",
+]
+
+[tool.briefcase.app.TheLootBoxWallet.linux.system.arch]
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection",
+    # Runtime dependencies that need to exist so that the
+    # Arch package passes final validation.
+    # Needed to provide GTK
+    "gtk3",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra",
+    # Needed to provide WebKit2
+    # "webkit2gtk",
+]
+
+system_runtime_requires = [
+    # Needed to provide GTK
+    "gtk3",
+    # Needed to provide PyGObject bindings
+    "gobject-introspection-runtime",
+    # Dependencies that GTK looks for at runtime
+    "libcanberra",
+    # Needed to provide WebKit2 at runtime
+    # "webkit2gtk",
+]
+
+[tool.briefcase.app.TheLootBoxWallet.linux.appimage]
+manylinux = "manylinux2014"
+
+system_requires = [
+    # Needed to compile pycairo wheel
+    "cairo-gobject-devel",
+    # Needed to compile PyGObject wheel
+    "gobject-introspection-devel",
+    # Needed to provide GTK
+    "gtk3-devel",
+    # Dependencies that GTK looks for at runtime, that need to be
+    # in the build environment to be picked up by linuxdeploy
+    "libcanberra-gtk3",
+    "PackageKit-gtk3-module",
+    "gvfs-client",
+    # Needed to provide WebKit2 at runtime
+    # "webkit2gtk3",
+]
+linuxdeploy_plugins = [
+    "DEPLOY_GTK_VERSION=3 gtk",
+]
+
+[tool.briefcase.app.TheLootBoxWallet.linux.flatpak]
+flatpak_runtime = "org.gnome.Platform"
+flatpak_runtime_version = "44"
+flatpak_sdk = "org.gnome.Sdk"
+
+[tool.briefcase.app.TheLootBoxWallet.windows]
+requires = [
+    "toga-winforms~=0.3.1",
+]
+
+# Mobile deployments
+[tool.briefcase.app.TheLootBoxWallet.iOS]
+requires = [
+    "toga-iOS~=0.3.1",
+    "std-nslog~=1.0.0"
+]
+
+[tool.briefcase.app.TheLootBoxWallet.android]
+requires = [
+    "toga-android~=0.3.1"
+]
+
+# Web deployments
+[tool.briefcase.app.TheLootBoxWallet.web]
+requires = [
+    "toga-web~=0.3.1",
+]
+style_framework = "Shoelace v2.3"
