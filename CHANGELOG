@@ -3,3 +3,4 @@
 ## 0.2.0 (28 Jun 2023)
 
 * Switched to briefcase for builds
+* Fixed path permission bug
