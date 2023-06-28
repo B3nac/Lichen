@@ -60,3 +60,6 @@ var/
 
 # Briefcase log files
 logs/
+
+#TheLootBoxWallet accounts file
+accounts.json
