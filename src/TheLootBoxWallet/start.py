@@ -29,7 +29,7 @@ class Positron(toga.App):
         print("Shutting down...")
         global server
         server.shutdown()
-        app.exit()
+        exit()
 
     def startup(self):
         host = "localhost"
