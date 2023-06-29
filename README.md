@@ -8,11 +8,11 @@ TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a 
 
 - Account wallet credentials are stored encrypted and decrypted only when the client is in use and unlocked by the account key.
 
-- Create multiple accounts
+- Create multiple accounts.
 
-- Send Ether 
+- Send Ether. 
 
-- Lookup other addresses if multiple were created
+- Lookup other addresses if multiple were created.
 
 - Runs locally as a self-contained stand-alone application.
 
@@ -32,7 +32,7 @@ https://github.com/TheLootBox-xyz/TheLootBoxWallet/releases
 
 `sudo dpkg -i thelootboxwallet-release`
 
-- Start thelootboxwallet from ``.
+- Start thelootboxwallet from `/usr/bin/TheLootBoxWallet` or from TheLootBoxWallet app shortcut via the Show Applications menu.
 
 ---
 
@@ -45,6 +45,10 @@ I highly recommended creating a virtual environment to avoid dependency conflict
 Once the venv is created source it in order to install the dependencies to that environment.
 
 `source path/to/envname/bin/activate`
+
+Install briefcase.
+
+``
 
 ---
 
