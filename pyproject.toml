@@ -6,7 +6,7 @@ version = "0.2.1"
 url = ""
 license = ""
 author = "Kyle Benac"
-author_email = "thelootbox@skiff.com"
+author_email = "hello@thelootbox.xyz"
 
 [tool.briefcase.app.TheLootBoxWallet]
 formal_name = "TheLootBoxWallet"
