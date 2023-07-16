@@ -256,8 +256,8 @@ def account_lookup():
                 decrypt_mnemonic_phrase = no_plaintext.decrypt(
                     bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
             wei_balance = network.eth.get_balance(unlocked_account[0])
-        except (InvalidSignature, InvalidToken, ValueError):
-            flash("Invalid account key", 'warning')
+        except (InvalidSignature, InvalidToken, ValueError, IndexError):
+            flash("Invalid account key or account id", 'warning')
             default_address: str = get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
             return render_template('account.html', account="unlocked", pub_address=default_address,
