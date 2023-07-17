@@ -49,10 +49,3 @@ class TestReplayTransactionForm:
         form = ReplayTransactionForm(tx_hash='0', submit=True)
         assert form.validate_on_submit() == False
 
-class TestCreateLootBundleForm:
-    def test_create_lootbundle_form(self):
-        context = flask_app.test_request_context('http://127.0.0.1:5000/createlootbundle', method='POST')
-        context.push()
-        CreateLootBundleForm.Meta.csrf = False
-        form = CreateLootBundleForm(submit=True)
-        assert form.validate_on_submit() == False

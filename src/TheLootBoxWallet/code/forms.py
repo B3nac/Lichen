@@ -103,16 +103,3 @@ class SendEtherForm(FlaskForm):
         def csrf_context(self):
             return session
 
-
-class CreateLootBundleForm(FlaskForm):
-    submit = SubmitField('Create LootBundle')
-
-    class Meta:
-        csrf = True
-        csrf_class = SessionCSRF
-        csrf_secret = random.encode()
-        csrf_time_limit = timedelta(minutes=20)
-
-        @property
-        def csrf_context(self):
-            return session

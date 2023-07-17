@@ -9,7 +9,6 @@ app.config['SECRET_KEY'] = ''.join(secrets.choice(alphabet) for i in range(15))
 
 from TheLootBoxWallet.code.blueprints import (
     index_blueprint,
-    create_lootbundle_blueprint,
     create_account_blueprint,
     create_fresh_account_blueprint,
     account_blueprint,
@@ -17,12 +16,10 @@ from TheLootBoxWallet.code.blueprints import (
     send_ether_blueprint,
     send_transaction_blueprint,
     replay_transaction_blueprint,
-    send_lootbundle_blueprint,
     delete_accounts_blueprint
 )
 
 app.register_blueprint(index_blueprint)
-app.register_blueprint(create_lootbundle_blueprint)
 app.register_blueprint(create_account_blueprint)
 app.register_blueprint(create_fresh_account_blueprint)
 app.register_blueprint(account_blueprint)
@@ -30,7 +27,6 @@ app.register_blueprint(account_lookup_blueprint)
 app.register_blueprint(send_ether_blueprint)
 app.register_blueprint(send_transaction_blueprint)
 app.register_blueprint(replay_transaction_blueprint)
-app.register_blueprint(send_lootbundle_blueprint)
 app.register_blueprint(delete_accounts_blueprint)
 
 

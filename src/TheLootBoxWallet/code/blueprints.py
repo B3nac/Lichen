@@ -13,7 +13,6 @@ from TheLootBoxWallet.code.forms import (
     UnlockAccountForm,
     ReplayTransactionForm,
     SendEtherForm,
-    CreateLootBundleForm,
     CreateMultipleAccountsForm,
     LookupAccountForm
 )
@@ -21,14 +20,11 @@ from TheLootBoxWallet.code.networks import (
     __location__,
     config_file,
     address,
-    network,
-    snek_contract_arbitrum_goerli,
-    lootbox_contract_arbitrum_bundle_factory
+    network
 )
 from eth_account import Account
 
 index_blueprint = Blueprint('index_blueprint', __name__)
-create_lootbundle_blueprint = Blueprint('create_lootbundle_blueprint', __name__)
 create_account_blueprint = Blueprint('create_account_blueprint', __name__)
 create_fresh_account_blueprint = Blueprint('create_fresh_account_blueprint', __name__)
 account_blueprint = Blueprint('account_blueprint', __name__)
@@ -36,7 +32,6 @@ account_lookup_blueprint = Blueprint('account_lookup_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 replay_transaction_blueprint = Blueprint('replay_transaction_blueprint', __name__)
-send_lootbundle_blueprint = Blueprint('send_lootbundle_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
 
 year: str = str(datetime.now().year)
@@ -78,7 +73,7 @@ def index():
             replay_transaction_form = ReplayTransactionForm()
             default_address: str = get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
-            return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, pub_address=default_address, private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], account_list=populate_public_address_list(), account_balance=round(network.from_wei(wei_balance, 'ether'), 2), lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call(), year=year)
+            return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, pub_address=default_address, private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], account_list=populate_public_address_list(), account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
 
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
@@ -233,8 +228,7 @@ def account():
                                    account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                    lookup_account_form=lookup_account_form,
                                    year=year,
-                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                                   lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
+                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
         else:
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
@@ -264,15 +258,12 @@ def account_lookup():
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=populate_public_address_list(),
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                                   lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                                   lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call(),
-                                   year=year)
+                                   lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,year=year)
         return render_template('account.html', account="unlocked", pub_address=pub_address,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(),
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                               lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, year=year,
-                               lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
+                               lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, year=year)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
@@ -353,77 +344,13 @@ def replay_transaction():
             return render_template('transaction_data.html', account="unlocked", year=year)
 
 
-@create_lootbundle_blueprint.route('/createlootbundle', methods=['GET'])
-def createlootbundle():
-    unlock_account_form = UnlockAccountForm()
-    create_lootbundle_form = CreateLootBundleForm()
-    global unlocked
-    if request.method == 'GET':
-        if not unlocked:
-            try:
-                with open(__location__ + accounts_file, 'r') as accounts_from_file:
-                    account_data_json = json.load(accounts_from_file)
-                    pub_address = account_data_json[int(0)]['public_address']
-                    private_key = account_data_json[int(0)]['private_key']
-                    mnemonic_phrase = account_data_json[int(0)]['mnemonic_phrase']
-            except Exception:
-                create_account_form=CreateAccountForm()
-                form_create_multiple=CreateMultipleAccountsForm()
-                flash("No accounts exist, please create an account.", 'warning')
-                return render_template('create.html', account="new", create_account_form=create_account_form,
-                                       form_create_multiple=form_create_multiple, year=year)
-            return render_template('unlock.html', account="current", pub_address=pub_address,
-                                   private_key=private_key, mnemonic_phrase=mnemonic_phrase, unlock_account_form=unlock_account_form, year=year)
-        if unlocked:
-            return render_template('createlootbundle.html', account="unlocked", create_lootbundle_form=create_lootbundle_form, year=year)
-
-
-@send_lootbundle_blueprint.route('/send_lootbundle_transaction', methods=['POST'])
-def send_lootbundle_transaction():
-    if request.method == 'POST':
-        if unlocked:
-            default_address: str = get_pub_address_from_config()
-            wei_balance = network.eth.get_balance(default_address)
-            try:
-                # Approve transaction
-                approve = snek_contract_arbitrum_goerli.functions.approve('0x587B0a60a97a60e9B00dbAE03Bd50DffF2cAbB78',
-                                                                 10000000000000000000).buildTransaction(
-                    {'chainId': 421613, 'gas': network.toWei('0.03', 'gwei'),
-                     'gasPrice': gas_price,
-                     'nonce': network.eth.get_transaction_count(default_address, 'pending'),
-                     'from': default_address})
-
-                sign_approve = network.eth.account.sign_transaction(approve, unlocked_account[1])
-                network.eth.send_raw_transaction(sign_approve.rawTransaction)
-
-                # Create bundle
-                create_bundle = lootbox_contract_arbitrum_bundle_factory.functions.createBundle(10000000000000000000)\
-                    .buildTransaction(
-                    {'chainId': 421613, 'gas': network.to_wei('0.03', 'gwei'),
-                     'gasPrice': gas_price,
-                     'nonce': network.eth.get_transaction_count(default_address, 'pending'),
-                     'from': default_address})
-
-                sign_create_bundle = network.eth.account.sign_transaction(create_bundle, unlocked_account[1])
-                network.eth.send_raw_transaction(sign_create_bundle.rawTransaction)
-                flash('LootBundle created successfully!', 'success')
-            except Exception as e:
-                flash(e, 'warning')
-            lookup_account_form = LookupAccountForm()
-            replay_transaction_form = ReplayTransactionForm()
-            return render_template('account.html', account="unlocked", pub_address=default_address,
-                               private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
-                               account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year,
-                               lootbundles=lootbox_contract_arbitrum_bundle_factory.functions.allBundles().call())
-
-
 @delete_accounts_blueprint.route('/delete', methods=['POST'])
 def delete_accounts():
     create_account_form = CreateAccountForm()
+    form_create_multiple = CreateMultipleAccountsForm()
     if os.path.exists(__location__ + accounts_file):
         os.remove(__location__ + accounts_file)
-        return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
+        return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
     else:
         flash("No accounts exist.", 'warning')
-        return render_template('create.html', account="new", create_account_form=create_account_form, year=year)
+        return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
