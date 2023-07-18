@@ -13,7 +13,7 @@ formal_name = "TheLootBoxWallet"
 description = "TheLootBoxWallet is a Ethereum wallet that runs locally on your desktop with a focus on privacy and security."
 long_description = """More details about the app should go here.
 """
-icon = "src/TheLootBoxWallet/resources/TheLootBoxWallet"
+icon = "resources/TheLootBoxLogo"
 sources = [
     "src/TheLootBoxWallet",
 ]
