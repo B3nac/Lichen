@@ -8,4 +8,10 @@
 
 * Fixed path permission bug
 
-## 0.2.2 ()
+## 0.2.2 (18 Jul 2023)
+
+* Fixed particle effects
+* Fixed bugs related to an IndexError and form import
+* Removed loot bundles feature
+* Improved GUI
+* Added icons
