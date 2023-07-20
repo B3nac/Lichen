@@ -20,7 +20,8 @@ from TheLootBoxWallet.code.networks import (
     __location__,
     config_file,
     address,
-    network
+    network,
+    ens_resolver
 )
 from eth_account import Account
 
@@ -178,6 +179,9 @@ def populate_public_address_list():
                 flash(f"{e}, No account exists with id {account_id}.", 'warning')
     return public_address_list
 
+def get_ens_name(default_address):
+    domain = ens_resolver.name(default_address)
+    return domain
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 def account():
@@ -203,12 +207,13 @@ def account():
                 global unlocked
                 unlocked = True
                 default_address: str = get_pub_address_from_config()
+                ens_name: str = get_ens_name(default_address)
                 wei_balance = network.eth.get_balance(default_address)
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
-            return render_template('account.html', account="unlocked", pub_address=default_address,
+            return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                lookup_account_form=lookup_account_form, year=year,
@@ -220,10 +225,11 @@ def account():
                 return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
         if unlocked:
             default_address: str = get_pub_address_from_config()
+            ens_name: str = get_ens_name(default_address)
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = network.eth.get_balance(default_address)
-            return render_template('account.html', account="unlocked", pub_address=default_address,
+            return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
                                    account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
                                    lookup_account_form=lookup_account_form,
