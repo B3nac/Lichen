@@ -181,6 +181,8 @@ def populate_public_address_list():
 
 def get_ens_name(default_address):
     domain = ens_resolver.name(default_address)
+    if domain == None:
+        domain = "No ENS name associated with this address."
     return domain
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
