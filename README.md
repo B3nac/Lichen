@@ -67,7 +67,7 @@ default_address = your_public_ethereum_address
 
 ### Preview screenshot
 
-![TheLootBoxClient](src/TheLootBoxWallet/code/static/images/TheLootBoxClient.png)
+![TheLootBoxClient](src/TheLootBoxWallet/code/static/images/TheLootBoxWallet.png)
 
 ### Community
 

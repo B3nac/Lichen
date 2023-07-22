@@ -12,7 +12,7 @@ if os.path.exists(__location__ + config_file):
     config.read(__location__ + config_file)
     network = Web3(Web3.HTTPProvider(config['DEFAULT']['network']))
     address = config['DEFAULT']['default_address']
-    ens_mainnet_node = config['DEFAULT']['ens_mainnet_node']
+    ens_mainnet_node = Web3(Web3.HTTPProvider(config['DEFAULT']['ens_mainnet_node']))
 else:
     network = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
     ens_mainnet_node = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/c027bbda707e4d6d83124ca432d42e6f'))
