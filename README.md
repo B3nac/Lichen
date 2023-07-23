@@ -38,6 +38,10 @@ https://github.com/TheLootBox-xyz/TheLootBoxWallet/releases
 
 ### Setup from source
 
+Dependencies for Ubuntu 20.04.
+
+`sudo apt install build-essential git pkg-config python3-dev python3-venv libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0 libcanberra-gtk3-module`
+
 I highly recommended creating a virtual environment to avoid dependency conflicts.
 
 `python3 -m venv envname`
@@ -47,6 +51,16 @@ Once the venv is created source it in order to install the dependencies to that 
 `source path/to/envname/bin/activate`
 
 Install briefcase.
+
+`pip install briefcase`
+
+Dev mode.
+
+`briefcase dev`
+
+Build and run the app.
+
+`briefcase run`
 
 ``
 
