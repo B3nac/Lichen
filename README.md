@@ -82,13 +82,9 @@ ens_mainnet_node = your_mainnet_node_url
 
 ![TheLootBoxClient](src/TheLootBoxWallet/code/static/images/TheLootBoxWallet.png)
 
-### Community
-
-Join the Discord! https://discord.gg/pd4wupphDe 
-
 ### Supporting development
 
-Updating.
+https://www.buymeacoffee.com/thelootbox
 
 ### Check out BeeWare
 
