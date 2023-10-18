@@ -50,11 +50,11 @@ Once the venv is created source it in order to install the dependencies to that 
 
 `source path/to/envname/bin/activate`
 
-Install briefcase.
+Install briefcase and required dependencies.
 
-`pip install briefcase`
+`pip install briefcase Flask web3 cyptography Flask-WTF toga`
 
-Dev mode.
+Start app in Dev mode.
 
 `briefcase dev`
 

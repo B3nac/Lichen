@@ -11,7 +11,6 @@
     <div class="form-row">
         <div>
             <h3>Create account</h3>
-            <br>
             <p>Create a fresh account</p>
             {{ create_account_form.create(class="btn btn-primary")}}
         </div>
@@ -20,7 +19,7 @@
 <form method="POST" action="create">
         <div>
             <br>
-            <p>Or import an account from an existing mnemonic</p>
+	    <h3>Import account</h3>
 	    <p>Mnemonic</p>
             <p>{{ form_create_multiple.create_from_mnemonic }}</p>
             <p>Number of accounts {{ form_create_multiple.number_of_accounts }}</p>
