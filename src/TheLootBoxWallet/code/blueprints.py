@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 from web3.exceptions import TransactionNotFound
+from requests.exceptions import MissingSchema
 
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
@@ -21,9 +22,12 @@ from TheLootBoxWallet.code.networks import (
     config_file,
     address,
     network,
-    ens_resolver
+    ens_mainnet_address,
+    ens_resolver,
+    logs
 )
 from eth_account import Account
+from TheLootBoxWallet.code.custom_logs import logger
 
 index_blueprint = Blueprint('index_blueprint', __name__)
 create_account_blueprint = Blueprint('create_account_blueprint', __name__)
@@ -165,8 +169,8 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
     accounts_list.append(account_info)
-    json.dump(accounts_list, open(__location__ + accounts_file, 'w'))
-
+    with open(__location__ + accounts_file, 'w'):
+        json.dump(accounts_list, open(__location__ + accounts_file, 'w'))
 
 def populate_public_address_list():
     public_address_list = []
@@ -180,10 +184,16 @@ def populate_public_address_list():
     return public_address_list
 
 def get_ens_name(default_address):
-    domain = ens_resolver.name(default_address)
-    if domain == None:
-        domain = "No ENS name associated with this address."
-    return domain
+    try:
+        if ens_mainnet_address != "":
+            domain = ens_resolver.name(default_address)
+            if domain == None:
+                domain = "No ENS name associated with this address."
+        else:
+            domain = None
+    except MissingSchema:
+        flash(f"No ENS name associated with this address.", 'warning')
+        
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 def account():
@@ -211,7 +221,8 @@ def account():
                 default_address: str = get_pub_address_from_config()
                 ens_name: str = get_ens_name(default_address)
                 wei_balance = network.eth.get_balance(default_address)
-        except (InvalidSignature, InvalidToken, ValueError):
+        except (InvalidSignature, InvalidToken, ValueError) as e:
+            print(e)
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
@@ -297,27 +308,30 @@ def send():
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
 def send_transaction():
     if request.method == 'POST' and unlocked:
-        to_account = request.form['to_public_address']
-        amount = request.form['amount_of_ether']
-        try:
-            tx = {
-                'nonce': network.eth.get_transaction_count(pub_address, 'pending'),
-                'to': to_account,
-                'value': network.to_wei(amount, 'ether'),
-                'gas': network.to_wei('0.03', 'gwei'),
-                'gasPrice': gas_price,
-                'from': pub_address
-            }
-            sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
-            network.eth.send_raw_transaction(sign.rawTransaction)
-
-            flash('Transaction sent successfully!', 'success')
-        except Exception as e:
-            flash(e, 'warning')
         lookup_account_form = LookupAccountForm()
         replay_transaction_form = ReplayTransactionForm()
         default_address: str = get_pub_address_from_config()
         wei_balance = network.eth.get_balance(default_address)
+        to_account = request.form['to_public_address']
+        amount = request.form['amount_of_ether']
+        try:
+            tx = {
+                'nonce': network.eth.get_transaction_count(default_address, 'pending'),
+                'to': to_account,
+                'value': network.to_wei(amount, 'ether'),
+                'gas': network.to_wei('0.03', 'gwei'),
+                'gasPrice': gas_price,
+                'from': default_address
+            }
+            sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
+            sent_transaction = network.eth.send_raw_transaction(sign.rawTransaction)
+            if logs:
+                logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
+            flash('Transaction sent successfully!', 'success')
+        except Exception as e:
+            if logs:
+                logger.debug(e)
+            flash(e, 'warning')
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,

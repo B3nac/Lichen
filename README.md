@@ -76,6 +76,7 @@ Example `config.ini` file:
 network = https://goerli-rollup.arbitrum.io/rpc
 default_address = your_public_ethereum_address
 ens_mainnet_node = your_mainnet_node_url
+logs = False
 ```
 
 ### Preview screenshot

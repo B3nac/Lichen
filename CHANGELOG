@@ -15,3 +15,10 @@
 * Removed loot bundles feature
 * Improved GUI
 * Added icons
+
+## 0.2.3
+
+* Refactored for Python 3.10
+* Fixed a few bugs
+* Added custom logging based on config value
+* Windows build 
