@@ -222,7 +222,6 @@ def account():
                 ens_name: str = get_ens_name(default_address)
                 wei_balance = network.eth.get_balance(default_address)
         except (InvalidSignature, InvalidToken, ValueError) as e:
-            print(e)
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:

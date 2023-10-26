@@ -1,4 +1,4 @@
-# TheLootBoxWallet (README update in progress)
+# TheLootBoxWallet
 
 TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets powered by Toga and coffee .
 
