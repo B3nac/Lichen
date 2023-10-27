@@ -61,6 +61,9 @@ def get_pub_address_from_config():
             return default_address
         else:
             return unlocked_account[0]
+    else:
+        default_address = unlocked_account[0]
+        return default_address
 
 
 @index_blueprint.route('/', methods=['GET'])

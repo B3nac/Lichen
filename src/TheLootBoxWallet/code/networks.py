@@ -17,7 +17,9 @@ if os.path.exists(__location__ + config_file):
     logs = config['DEFAULT']['logs']
 else:
     network = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
-    ens_mainnet_node = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/c027bbda707e4d6d83124ca432d42e6f'))
+    address = ""
+    ens_mainnet_address = "https://mainnet.infura.io/v3/c027bbda707e4d6d83124ca432d42e6f"
+    ens_mainnet_node = Web3(Web3.HTTPProvider(ens_mainnet_address))
     logs = False
 ens_resolver = ENS.from_web3(ens_mainnet_node)
 
