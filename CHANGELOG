@@ -21,4 +21,8 @@
 * Refactored for Python 3.10
 * Fixed a few bugs
 * Added custom logging based on config value
-* Windows build 
+
+## 0.2.4
+
+* Fix bugs related to no config.ini file in use
+* ENS support added to sending transactions

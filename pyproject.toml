@@ -2,11 +2,11 @@
 [tool.briefcase]
 project_name = "TheLootBoxWallet"
 bundle = "com.thelootboxwallet"
-version = "0.2.3"
-url = "https://thelootbox.xyz/"
+version = "0.2.4"
+url = "https://thelootbox-xyz.github.io/"
 license = "MIT"
 author = "Kyle Benac"
-author_email = "hello@thelootbox.xyz"
+author_email = "b3nac.eth@ethereum.email"
 
 [tool.briefcase.app.TheLootBoxWallet]
 formal_name = "TheLootBoxWallet"
