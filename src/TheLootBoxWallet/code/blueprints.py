@@ -7,7 +7,7 @@ from requests.exceptions import MissingSchema
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, abort
 
 from TheLootBoxWallet.code.forms import (
     CreateAccountForm,
@@ -316,7 +316,13 @@ def send_transaction():
         wei_balance = network.eth.get_balance(default_address)
         to_account = request.form['to_public_address']
         amount = request.form['amount_of_ether']
+        #Add ens address check here
         try:
+            if ".eth" in to_account:
+                ens_name = ens_resolver.address(to_account)
+                if ens_name == None:
+                    abort(404, 'ENS address not found or invalid, transaction cancelled.') 
+                to_account = ens_name
             tx = {
                 'nonce': network.eth.get_transaction_count(default_address, 'pending'),
                 'to': to_account,
@@ -329,7 +335,7 @@ def send_transaction():
             sent_transaction = network.eth.send_raw_transaction(sign.rawTransaction)
             if logs:
                 logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
-            flash('Transaction sent successfully!', 'success')
+            flash(f'Transaction sent successfully! Transaction hash {bytes(sent_transaction.hex(), encoding="utf8").decode("utf-8")}', 'success')
         except Exception as e:
             if logs:
                 logger.debug(e)
