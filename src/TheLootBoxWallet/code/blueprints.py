@@ -173,7 +173,7 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
     accounts_list.append(account_info)
     with open(__location__ + accounts_file, 'w', encoding='utf-8') as accounts:
-        json.dump(account_list, accounts, ensure_ascii=False, indent=4)
+        json.dump(accounts_list, accounts, ensure_ascii=False, indent=4)
 
 def populate_public_address_list():
     public_address_list = []
