@@ -7,12 +7,12 @@ class ServerThread(Thread):
 
     def __init__(self, app):
         Thread.__init__(self)
-        self.server = make_server('localhost', 5000, app)
+        self.server = make_server('localhost', 5000, app, threaded=True)
         self.ctx = app.app_context()
         self.ctx.push()
 
     def run(self):
-        print('starting server')
+        print('Local server started')
         self.server.serve_forever()
 
     def shutdown(self):

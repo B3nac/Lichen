@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from web3.exceptions import TransactionNotFound
 from requests.exceptions import MissingSchema
+import asyncio
 
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
@@ -54,7 +55,7 @@ gas_price = network.eth.gas_price
 accounts_file =  "/accounts.json"
 
 
-def get_pub_address_from_config():
+async def get_pub_address_from_config():
     if os.path.exists(__location__ + config_file):
         default_address = address
         if default_address == unlocked_account[0]:
@@ -67,7 +68,7 @@ def get_pub_address_from_config():
 
 
 @index_blueprint.route('/', methods=['GET'])
-def index():
+async def index():
     if request.method == 'GET':
         if not os.path.exists(__location__ + accounts_file):
             create_account_form = CreateAccountForm()
@@ -79,9 +80,10 @@ def index():
         if os.path.exists(__location__ + accounts_file) and unlocked:
             lookup_account_form = LookupAccountForm()
             replay_transaction_form = ReplayTransactionForm()
-            default_address: str = get_pub_address_from_config()
+            default_address: str = await get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
-            return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, pub_address=default_address, private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], account_list=populate_public_address_list(), account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
+            account_list = await populate_public_address_list()
+            return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, pub_address=default_address, private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], account_list=account_list, account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
 
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
@@ -175,7 +177,7 @@ def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
     with open(__location__ + accounts_file, 'w', encoding='utf-8') as accounts:
         json.dump(accounts_list, accounts, ensure_ascii=False, indent=4)
 
-def populate_public_address_list():
+async def populate_public_address_list():
     public_address_list = []
     with open(__location__ + accounts_file, 'r') as accounts_from_file:
         account_data_json = json.load(accounts_from_file)
@@ -186,10 +188,10 @@ def populate_public_address_list():
                 flash(f"{e}, No account exists with id {account_id}.", 'warning')
     return public_address_list
 
-def get_ens_name(default_address):
+async def get_ens_name(default_address):
     try:
         if ens_mainnet_address != "":
-            domain = ens_resolver.name(default_address)
+            domain = await ens_resolver.name(default_address)
             if domain == None:
                 domain = "No ENS name associated with this address."
         else:
@@ -199,7 +201,7 @@ def get_ens_name(default_address):
         
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
-def account():
+async def account():
     replay_transaction_form = ReplayTransactionForm()
     create_account_form = CreateAccountForm()
     lookup_account_form = LookupAccountForm()
@@ -221,16 +223,17 @@ def account():
                 unlocked_account.append(decrypt_mnemonic_phrase)
                 global unlocked
                 unlocked = True
-                default_address: str = get_pub_address_from_config()
-                ens_name: str = get_ens_name(default_address)
+                default_address: str = await get_pub_address_from_config()
+                ens_name: str = await get_ens_name(default_address)
                 wei_balance = network.eth.get_balance(default_address)
+                account_list = await populate_public_address_list()
         except (InvalidSignature, InvalidToken, ValueError) as e:
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
+                               account_list=account_list, replay_transaction_form=replay_transaction_form,
                                lookup_account_form=lookup_account_form, year=year,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
@@ -239,14 +242,15 @@ def account():
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
         if unlocked:
-            default_address: str = get_pub_address_from_config()
-            ens_name: str = get_ens_name(default_address)
+            default_address: str = await get_pub_address_from_config()
+            ens_name: str =  await get_ens_name(default_address)
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = network.eth.get_balance(default_address)
+            account_list = await populate_public_address_list()
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
-                                   account_list=populate_public_address_list(), replay_transaction_form=replay_transaction_form,
+                                   account_list=account_list, replay_transaction_form=replay_transaction_form,
                                    lookup_account_form=lookup_account_form,
                                    year=year,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
@@ -255,9 +259,11 @@ def account():
 
 
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
-def account_lookup():
+async def account_lookup():
     lookup_account_form = LookupAccountForm()
     replay_transaction_form = ReplayTransactionForm()
+    default_address: str = await get_pub_address_from_config()
+
     if request.method == 'POST':
         try:
             account_unlock_key = request.form['account_key']
@@ -267,25 +273,31 @@ def account_lookup():
                 account_data_json = json.load(accounts_from_file)
                 pub_address = account_data_json[int(lookup_account)]['public_address']
                 decrypt_private_key = no_plaintext.decrypt(
-                    bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
+                bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
                 decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                    bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-            wei_balance = network.eth.get_balance(unlocked_account[0])
-        except (InvalidSignature, InvalidToken, ValueError, IndexError):
-            flash("Invalid account key or account id", 'warning')
-            default_address: str = get_pub_address_from_config()
-            wei_balance = network.eth.get_balance(default_address)
-            return render_template('account.html', account="unlocked", pub_address=default_address,
-                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
-                                   account_list=populate_public_address_list(),
+                bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+                wei_balance = network.eth.get_balance(pub_address)
+                account_list = await populate_public_address_list()
+            return render_template('account.html', account="unlocked", pub_address=pub_address,
+                                   private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
+                                   account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
                                    lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,year=year)
-        return render_template('account.html', account="unlocked", pub_address=pub_address,
-                               private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=populate_public_address_list(),
+        except (InvalidSignature, InvalidToken, ValueError, IndexError):
+            flash("Invalid account key or account id", 'warning')
+            wei_balance = network.eth.get_balance(default_address)
+            account_list = await populate_public_address_list()
+            return render_template('account.html', account="unlocked", pub_address=default_address,
+                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                                   account_list=account_list,
+                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
+                                   lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,year=year)
+        
+        return render_template('account.html', account="unlocked", pub_address=default_address,
+                               private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                               account_list=account_list,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
                                lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, year=year)
-
 
 @send_ether_blueprint.route('/send', methods=['GET'])
 def send():
@@ -308,7 +320,7 @@ def send():
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
-def send_transaction():
+async def send_transaction():
     if request.method == 'POST' and unlocked:
         lookup_account_form = LookupAccountForm()
         replay_transaction_form = ReplayTransactionForm()
@@ -316,7 +328,6 @@ def send_transaction():
         wei_balance = network.eth.get_balance(default_address)
         to_account = request.form['to_public_address']
         amount = request.form['amount_of_ether']
-        #Add ens address check here
         try:
             if ".eth" in to_account:
                 ens_name = ens_resolver.address(to_account)
@@ -340,9 +351,10 @@ def send_transaction():
             if logs:
                 logger.debug(e)
             flash(e, 'warning')
+            account_list = await populate_public_address_list()
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
-                               account_list=populate_public_address_list(), lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
+                               account_list=account_list, lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
     else:
         unlock_account_form = UnlockAccountForm()

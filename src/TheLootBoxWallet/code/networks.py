@@ -1,7 +1,7 @@
 import os.path
 from web3 import Web3
 import configparser
-from ens import ENS
+from ens import AsyncENS
 
 __location__ = os.path.expanduser('~')
 
@@ -10,7 +10,7 @@ config_file = "/config.ini"
 if os.path.exists(__location__ + config_file):
     config = configparser.ConfigParser()
     config.read(__location__ + config_file)
-    network = Web3(Web3.HTTPProvider(config['DEFAULT']['network']))
+    network = Web3(Web3.AsyncHTTPProvider(config['DEFAULT']['network']))
     address = config['DEFAULT']['default_address']
     ens_mainnet_address = config['DEFAULT']['ens_mainnet_node']
     ens_mainnet_node = Web3(Web3.HTTPProvider(config['DEFAULT']['ens_mainnet_node']))
@@ -19,9 +19,9 @@ else:
     network = Web3(Web3.HTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
     address = ""
     ens_mainnet_address = "https://mainnet.infura.io/v3/c027bbda707e4d6d83124ca432d42e6f"
-    ens_mainnet_node = Web3(Web3.HTTPProvider(ens_mainnet_address))
+    ens_mainnet_node = Web3(Web3.AsyncHTTPProvider(ens_mainnet_address))
     logs = False
-ens_resolver = ENS.from_web3(ens_mainnet_node)
+ens_resolver = AsyncENS.from_web3(ens_mainnet_node)
 
 from web3.middleware import geth_poa_middleware
 
