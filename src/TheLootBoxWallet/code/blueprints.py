@@ -87,7 +87,7 @@ async def index():
 
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
-def create_account():
+async def create_account():
     unlock_account_form = UnlockAccountForm()
     create_account_form = CreateAccountForm()
     form_create_multiple = CreateMultipleAccountsForm()
@@ -126,7 +126,7 @@ def create_account():
                         pub_address = new_eth_account.address
                         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
                         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
-                        save_account_info(pub_address, mnemonic_phrase, private_key, number)
+                        await save_account_info(pub_address, mnemonic_phrase, private_key, number)
                     multiple_accounts_list.clear()
                     return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                            private_key=new_eth_account.key.hex(),
@@ -142,14 +142,14 @@ def create_account():
 
 
 @create_fresh_account_blueprint.route('/create_fresh', methods=['POST'])
-def create_fresh():
+async def create_fresh():
     if request.method == 'POST':
         create_account_form = CreateAccountForm()
         form_create_multiple = CreateMultipleAccountsForm()
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         wallet_key = Fernet.generate_key().decode("utf-8")
         try:
-            create_account_callback(new_eth_account, mnemonic, wallet_key)
+            await create_account_callback(new_eth_account, mnemonic, wallet_key)
             return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                private_key=new_eth_account.key.hex(),
                                mnemonic_phrase=mnemonic, wallet_key=wallet_key,
@@ -159,17 +159,17 @@ def create_fresh():
             flash(f"{e}, probably incorrect format.", 'warning')
 
 
-def create_account_callback(new_eth_account, mnemonic, wallet_key):
+async def create_account_callback(new_eth_account, mnemonic, wallet_key):
     if not os.path.exists(__location__ + accounts_file):
         account_id = 0
         no_plaintext = Fernet(wallet_key)
         pub_address = new_eth_account.address
         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic, encoding='utf8'))
-        save_account_info(pub_address, mnemonic_phrase, private_key, account_id)
+        await save_account_info(pub_address, mnemonic_phrase, private_key, account_id)
 
 
-def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
+async def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
     account_info = {'id': int(account_id), 'public_address': str(pub_address),
                     'private_key': str(private_key.decode("utf-8")),
                     'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
@@ -324,10 +324,11 @@ async def send_transaction():
     if request.method == 'POST' and unlocked:
         lookup_account_form = LookupAccountForm()
         replay_transaction_form = ReplayTransactionForm()
-        default_address: str = get_pub_address_from_config()
+        default_address: str = await get_pub_address_from_config()
         wei_balance = network.eth.get_balance(default_address)
         to_account = request.form['to_public_address']
         amount = request.form['amount_of_ether']
+        account_list = await populate_public_address_list()
         try:
             if ".eth" in to_account:
                 ens_name = ens_resolver.address(to_account)
@@ -351,7 +352,6 @@ async def send_transaction():
             if logs:
                 logger.debug(e)
             flash(e, 'warning')
-            account_list = await populate_public_address_list()
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=account_list, lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
