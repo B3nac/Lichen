@@ -91,7 +91,7 @@ class UnlockAccountForm(FlaskForm):
 class SendEtherForm(FlaskForm):
     to_public_address = StringField('To public address', validators=[InputRequired(), Length(min=0, max=42)])
     amount_of_ether = StringField('Amount of Ether to send', validators=[InputRequired(), Length(min=0, max=42)])
-    submit = SubmitField('Send Ether')
+    submit = SubmitField('Verify')
 
     class Meta:
         csrf = True
@@ -103,3 +103,16 @@ class SendEtherForm(FlaskForm):
         def csrf_context(self):
             return session
 
+class SendVerifyForm(FlaskForm):
+    gas_amount = StringField('Amount of gas', validators=[InputRequired(), Length(min=0, max=42)])
+    submit = SubmitField('Send')
+
+    class Meta:
+        csrf = True
+        csrf_class = SessionCSRF
+        csrf_secret = random.encode()
+        csrf_time_limit = timedelta(minutes=20)
+
+        @property
+        def csrf_context(self):
+            return session

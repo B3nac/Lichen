@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<body class="form_body">
+<div class="form_style">
+<form method="POST" action="send_transaction">
+<h3>Verify Transaction</h3>
+<br>
+  {{ send_verify_form.csrf_token }}
+  {% block data %}
+    {% if account == "unlocked" %}
+      <p>Amount of gas</p>
+      <input type="text" value="{{ gas_amount }}" size="35">
+      <p>Click send if this gas amount looks correct</p>
+         {{ send_verify_form.submit(class="btn btn-primary")}}
+      </form>
+{% endif %}
+{% endblock data %}
+</div>
+</body>
+{% endblock %}

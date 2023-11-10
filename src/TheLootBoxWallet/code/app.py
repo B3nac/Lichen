@@ -14,6 +14,7 @@ from TheLootBoxWallet.code.blueprints import (
     account_blueprint,
     account_lookup_blueprint,
     send_ether_blueprint,
+    send_verify_blueprint,
     send_transaction_blueprint,
     replay_transaction_blueprint,
     delete_accounts_blueprint
@@ -25,6 +26,7 @@ app.register_blueprint(create_fresh_account_blueprint)
 app.register_blueprint(account_blueprint)
 app.register_blueprint(account_lookup_blueprint)
 app.register_blueprint(send_ether_blueprint)
+app.register_blueprint(send_verify_blueprint)
 app.register_blueprint(send_transaction_blueprint)
 app.register_blueprint(replay_transaction_blueprint)
 app.register_blueprint(delete_accounts_blueprint)

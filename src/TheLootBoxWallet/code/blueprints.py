@@ -16,7 +16,8 @@ from TheLootBoxWallet.code.forms import (
     ReplayTransactionForm,
     SendEtherForm,
     CreateMultipleAccountsForm,
-    LookupAccountForm
+    LookupAccountForm,
+    SendVerifyForm
 )
 from TheLootBoxWallet.code.networks import (
     __location__,
@@ -36,6 +37,7 @@ create_fresh_account_blueprint = Blueprint('create_fresh_account_blueprint', __n
 account_blueprint = Blueprint('account_blueprint', __name__)
 account_lookup_blueprint = Blueprint('account_lookup_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
+send_verify_blueprint = Blueprint('send_verify_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 replay_transaction_blueprint = Blueprint('replay_transaction_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
@@ -54,6 +56,7 @@ gas_price = network.eth.gas_price
 
 accounts_file =  "/accounts.json"
 
+tx_list = []
 
 async def get_pub_address_from_config():
     if os.path.exists(__location__ + config_file):
@@ -319,6 +322,37 @@ def send():
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
 
+@send_transaction_blueprint.route('/send_verify_transaction', methods=['POST'])
+async def send_verify_transaction():
+    if request.method == 'POST' and unlocked:
+        to_account = request.form['to_public_address']
+        amount = request.form['amount_of_ether']
+        default_address: str = await get_pub_address_from_config()
+        send_verify_form = SendVerifyForm()
+        if ".eth" in to_account:
+            ens_name = ens_resolver.address(to_account)
+            if ens_name == None:
+                abort(404, 'ENS address not found or invalid, transaction cancelled.') 
+            to_account = ens_name
+        tx = {
+              'nonce': network.eth.get_transaction_count(default_address, 'pending'),
+              'to': to_account,
+              'value': network.to_wei(amount, 'ether'),
+              'gas': network.to_wei('0.03', 'gwei'),
+              'gasPrice': gas_price,
+              'from': default_address
+            }
+        tx_list.append(tx)
+        gas_amount = network.eth.estimate_gas(tx)
+        if logs:
+            logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
+        return render_template('send_verify_transaction.html', account="unlocked", send_verify_form=send_verify_form,
+                               gas_amount=gas_amount, year=year)
+    else:
+        unlock_account_form = UnlockAccountForm()
+        return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
+
+
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
 async def send_transaction():
     if request.method == 'POST' and unlocked:
@@ -326,25 +360,11 @@ async def send_transaction():
         replay_transaction_form = ReplayTransactionForm()
         default_address: str = await get_pub_address_from_config()
         wei_balance = network.eth.get_balance(default_address)
-        to_account = request.form['to_public_address']
-        amount = request.form['amount_of_ether']
         account_list = await populate_public_address_list()
         try:
-            if ".eth" in to_account:
-                ens_name = ens_resolver.address(to_account)
-                if ens_name == None:
-                    abort(404, 'ENS address not found or invalid, transaction cancelled.') 
-                to_account = ens_name
-            tx = {
-                'nonce': network.eth.get_transaction_count(default_address, 'pending'),
-                'to': to_account,
-                'value': network.to_wei(amount, 'ether'),
-                'gas': network.to_wei('0.03', 'gwei'),
-                'gasPrice': gas_price,
-                'from': default_address
-            }
-            sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
+            sign = network.eth.account.sign_transaction(tx_list[0], unlocked_account[1])
             sent_transaction = network.eth.send_raw_transaction(sign.rawTransaction)
+            tx_list.clear()
             if logs:
                 logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
             flash(f'Transaction sent successfully! Transaction hash {bytes(sent_transaction.hex(), encoding="utf8").decode("utf-8")}', 'success')
