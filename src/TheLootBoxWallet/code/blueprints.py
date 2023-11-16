@@ -401,11 +401,7 @@ def replay_transaction():
             }
 
             status = network.eth.call(replay_tx, tx_hash.blockNumber - 1)
-            newlines = "\n\n"
-            newline = "\n"
-            return render_template('transaction_data.html', account="unlocked", to=tx_hash['to'],
-                                   from_data=tx_hash['from'], value=tx_hash['value'],
-                                   data=tx_hash['input'], status=status, newlines=newlines, newline=newline, year=year)
+            return render_template('transaction_data.html', account="unlocked", transaction_data=replay_tx, status=status, year=year)
         except (ValueError, TransactionNotFound) as e:
             flash(f"{e}", 'warning')
             return render_template('transaction_data.html', account="unlocked", year=year)

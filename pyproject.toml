@@ -22,7 +22,8 @@ test_sources = [
 ]
 
 requires = [
-    "flask",
+    "Flask",
+    "Flask[async]",
     "flask-wtf",
     "web3",
     "cryptography",
