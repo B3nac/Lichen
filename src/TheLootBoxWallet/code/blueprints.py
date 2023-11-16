@@ -325,32 +325,37 @@ def send():
 @send_transaction_blueprint.route('/send_verify_transaction', methods=['POST'])
 async def send_verify_transaction():
     if request.method == 'POST' and unlocked:
-        to_account = request.form['to_public_address']
-        amount = request.form['amount_of_ether']
-        default_address: str = await get_pub_address_from_config()
-        send_verify_form = SendVerifyForm()
-        if ".eth" in to_account:
-            ens_name = ens_resolver.address(to_account)
-            if ens_name == None:
-                abort(404, 'ENS address not found or invalid, transaction cancelled.') 
-            to_account = ens_name
-        tx = {
-              'nonce': network.eth.get_transaction_count(default_address, 'pending'),
-              'to': to_account,
-              'value': network.to_wei(amount, 'ether'),
-              'gas': network.to_wei('0.03', 'gwei'),
-              'gasPrice': gas_price,
-              'from': default_address
-            }
-        tx_list.append(tx)
-        gas_amount = network.eth.estimate_gas(tx)
-        if logs:
-            logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
-        return render_template('send_verify_transaction.html', account="unlocked", send_verify_form=send_verify_form,
+        send_ether_form = SendEtherForm()
+        try:
+            to_account = request.form['to_public_address']
+            amount = request.form['amount_of_ether']
+            default_address: str = await get_pub_address_from_config()
+            send_verify_form = SendVerifyForm()
+            if ".eth" in to_account:
+                ens_name = ens_resolver.address(to_account)
+                if ens_name == None:
+                    abort(404, 'ENS address not found or invalid, transaction cancelled.') 
+                    to_account = ens_name
+            tx = {
+                'nonce': network.eth.get_transaction_count(default_address, 'pending'),
+                'to': to_account,
+                'value': network.to_wei(amount, 'ether'),
+                'gas': network.to_wei('0.03', 'gwei'),
+                'gasPrice': gas_price,
+                'from': default_address
+                }
+            tx_list.append(tx)
+            gas_amount = network.eth.estimate_gas(tx)
+            if logs:
+                logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
+            return render_template('send_verify_transaction.html', account="unlocked", send_verify_form=send_verify_form,
                                gas_amount=gas_amount, year=year)
-    else:
-        unlock_account_form = UnlockAccountForm()
-        return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
+        except Exception as e:
+            flash(e, 'warning')
+            return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
+        else:
+            unlock_account_form = UnlockAccountForm()
+            return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
@@ -396,7 +401,11 @@ def replay_transaction():
             }
 
             status = network.eth.call(replay_tx, tx_hash.blockNumber - 1)
-            return render_template('transaction_data.html', account="unlocked", transaction_data=replay_tx, status=status, year=year)
+            newlines = "\n\n"
+            newline = "\n"
+            return render_template('transaction_data.html', account="unlocked", to=tx_hash['to'],
+                                   from_data=tx_hash['from'], value=tx_hash['value'],
+                                   data=tx_hash['input'], status=status, newlines=newlines, newline=newline, year=year)
         except (ValueError, TransactionNotFound) as e:
             flash(f"{e}", 'warning')
             return render_template('transaction_data.html', account="unlocked", year=year)
