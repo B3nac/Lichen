@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from web3.exceptions import TransactionNotFound
 from requests.exceptions import MissingSchema
-import asyncio
 
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
@@ -17,7 +16,8 @@ from TheLootBoxWallet.code.forms import (
     SendEtherForm,
     CreateMultipleAccountsForm,
     LookupAccountForm,
-    SendVerifyForm
+    SendVerifyForm,
+    SettingsForm
 )
 from TheLootBoxWallet.code.networks import (
     __location__,
@@ -41,6 +41,7 @@ send_verify_blueprint = Blueprint('send_verify_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 replay_transaction_blueprint = Blueprint('replay_transaction_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
+settings_blueprint = Blueprint('settings_blueprint', __name__)
 
 year: str = str(datetime.now().year)
 
@@ -54,9 +55,10 @@ unlocked: bool = False
 
 gas_price = network.eth.gas_price
 
-accounts_file =  "/accounts.json"
+accounts_file = "/accounts.json"
 
 tx_list = []
+
 
 async def get_pub_address_from_config():
     if os.path.exists(__location__ + config_file):
@@ -76,7 +78,8 @@ async def index():
         if not os.path.exists(__location__ + accounts_file):
             create_account_form = CreateAccountForm()
             form_create_multiple = CreateMultipleAccountsForm()
-            return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
+            return render_template('create.html', account="new", create_account_form=create_account_form,
+                                   form_create_multiple=form_create_multiple, year=year)
         if os.path.exists(__location__ + accounts_file) and not unlocked:
             unlock_account_form = UnlockAccountForm()
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
@@ -86,7 +89,11 @@ async def index():
             default_address: str = await get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
             account_list = await populate_public_address_list()
-            return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, pub_address=default_address, private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2], account_list=account_list, account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
+            return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form,
+                                   replay_transaction_form=replay_transaction_form, pub_address=default_address,
+                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                                   account_list=account_list,
+                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
 
 
 @create_account_blueprint.route('/create', methods=['GET', 'POST'])
@@ -100,7 +107,8 @@ async def create_account():
             flash("Account already exists, please delete the old account.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
-            return render_template('create.html', create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
+            return render_template('create.html', create_account_form=create_account_form,
+                                   form_create_multiple=form_create_multiple, year=year)
     if request.method == 'POST':
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         mnemonic_field_value = request.form['create_from_mnemonic']
@@ -154,10 +162,10 @@ async def create_fresh():
         try:
             await create_account_callback(new_eth_account, mnemonic, wallet_key)
             return render_template('account.html', account="new", pub_address=new_eth_account.address,
-                               private_key=new_eth_account.key.hex(),
-                               mnemonic_phrase=mnemonic, wallet_key=wallet_key,
-                               create_account_form=create_account_form,
-                               form_create_multiple=form_create_multiple, year=year)
+                                   private_key=new_eth_account.key.hex(),
+                                   mnemonic_phrase=mnemonic, wallet_key=wallet_key,
+                                   create_account_form=create_account_form,
+                                   form_create_multiple=form_create_multiple, year=year)
         except eth_utils.exceptions.ValidationError as e:
             flash(f"{e}, probably incorrect format.", 'warning')
 
@@ -180,6 +188,7 @@ async def save_account_info(pub_address, mnemonic_phrase, private_key, account_i
     with open(__location__ + accounts_file, 'w', encoding='utf-8') as accounts:
         json.dump(accounts_list, accounts, ensure_ascii=False, indent=4)
 
+
 async def populate_public_address_list():
     public_address_list = []
     with open(__location__ + accounts_file, 'r') as accounts_from_file:
@@ -191,17 +200,18 @@ async def populate_public_address_list():
                 flash(f"{e}, No account exists with id {account_id}.", 'warning')
     return public_address_list
 
+
 async def get_ens_name(default_address):
     try:
         if ens_mainnet_address != "":
             domain = await ens_resolver.name(default_address)
-            if domain == None:
+            if domain is None:
                 domain = "No ENS name associated with this address."
         else:
             domain = None
     except MissingSchema:
         flash(f"No ENS name associated with this address.", 'warning')
-        
+
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 async def account():
@@ -230,23 +240,24 @@ async def account():
                 ens_name: str = await get_ens_name(default_address)
                 wei_balance = network.eth.get_balance(default_address)
                 account_list = await populate_public_address_list()
-        except (InvalidSignature, InvalidToken, ValueError) as e:
+        except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
-                               private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                               account_list=account_list, replay_transaction_form=replay_transaction_form,
-                               lookup_account_form=lookup_account_form, year=year,
-                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
+                                   private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
+                                   account_list=account_list, replay_transaction_form=replay_transaction_form,
+                                   lookup_account_form=lookup_account_form, year=year,
+                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists(__location__ + accounts_file):
                 flash("No accounts exist, please create an account.", 'warning')
-                return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple)
+                return render_template('create.html', account="new", create_account_form=create_account_form,
+                                       form_create_multiple=form_create_multiple)
         if unlocked:
             default_address: str = await get_pub_address_from_config()
-            ens_name: str =  await get_ens_name(default_address)
+            ens_name: str = await get_ens_name(default_address)
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             wei_balance = network.eth.get_balance(default_address)
@@ -276,16 +287,17 @@ async def account_lookup():
                 account_data_json = json.load(accounts_from_file)
                 pub_address = account_data_json[int(lookup_account)]['public_address']
                 decrypt_private_key = no_plaintext.decrypt(
-                bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
+                    bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
                 decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
+                    bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
                 wei_balance = network.eth.get_balance(pub_address)
                 account_list = await populate_public_address_list()
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                    account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                                   lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,year=year)
+                                   lookup_account_form=lookup_account_form,
+                                   replay_transaction_form=replay_transaction_form, year=year)
         except (InvalidSignature, InvalidToken, ValueError, IndexError):
             flash("Invalid account key or account id", 'warning')
             wei_balance = network.eth.get_balance(default_address)
@@ -294,13 +306,16 @@ async def account_lookup():
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                                   lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,year=year)
-        
+                                   lookup_account_form=lookup_account_form,
+                                   replay_transaction_form=replay_transaction_form, year=year)
+
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=account_list,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                               lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form, year=year)
+                               lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
+                               year=year)
+
 
 @send_ether_blueprint.route('/send', methods=['GET'])
 def send():
@@ -312,14 +327,17 @@ def send():
         if not unlocked:
             if not os.path.exists(__location__ + accounts_file):
                 flash("No accounts exist, please create an account.", 'warning')
-                return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
+                return render_template('create.html', account="new", create_account_form=create_account_form,
+                                       form_create_multiple=form_create_multiple, year=year)
             else:
-                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
+                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form,
+                                       year=year)
         if os.path.exists(__location__ + accounts_file):
             if unlocked:
                 return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
             if not unlocked:
-                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
+                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form,
+                                       year=year)
 
 
 @send_transaction_blueprint.route('/send_verify_transaction', methods=['POST'])
@@ -333,8 +351,8 @@ async def send_verify_transaction():
             send_verify_form = SendVerifyForm()
             if ".eth" in to_account:
                 ens_name = ens_resolver.address(to_account)
-                if ens_name == None:
-                    abort(404, 'ENS address not found or invalid, transaction cancelled.') 
+                if ens_name is None:
+                    abort(404, 'ENS address not found or invalid, transaction cancelled.')
                     to_account = ens_name
             tx = {
                 'nonce': network.eth.get_transaction_count(default_address, 'pending'),
@@ -343,15 +361,14 @@ async def send_verify_transaction():
                 'gas': network.to_wei('0.03', 'gwei'),
                 'gasPrice': gas_price,
                 'from': default_address
-                }
+            }
             tx_list.append(tx)
             gas_amount = network.eth.estimate_gas(tx)
-            if logs:
-                logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
-            return render_template('send_verify_transaction.html', account="unlocked", send_verify_form=send_verify_form,
-                               gas_amount=gas_amount, year=year)
+            return render_template('send_verify_transaction.html', account="unlocked",
+                                   send_verify_form=send_verify_form,
+                                   gas_amount=gas_amount, year=year)
         except Exception as e:
-            flash(e, 'warning')
+            flash(f"{e}", 'warning')
             return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
         else:
             unlock_account_form = UnlockAccountForm()
@@ -372,14 +389,18 @@ async def send_transaction():
             tx_list.clear()
             if logs:
                 logger.info(bytes(sent_transaction.hex(), encoding='utf8'))
-            flash(f'Transaction sent successfully! Transaction hash {bytes(sent_transaction.hex(), encoding="utf8").decode("utf-8")}', 'success')
+            flash(
+                f'Transaction sent successfully! Transaction hash'
+                f'{bytes(sent_transaction.hex(), encoding="utf8").decode("utf-8")}',
+                'success')
         except Exception as e:
             if logs:
                 logger.debug(e)
-            flash(e, 'warning')
+            flash(f"{e}", 'warning')
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
-                               account_list=account_list, lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
+                               account_list=account_list, lookup_account_form=lookup_account_form,
+                               replay_transaction_form=replay_transaction_form,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
     else:
         unlock_account_form = UnlockAccountForm()
@@ -401,7 +422,8 @@ def replay_transaction():
             }
 
             status = network.eth.call(replay_tx, tx_hash.blockNumber - 1)
-            return render_template('transaction_data.html', account="unlocked", transaction_data=replay_tx, status=status, year=year)
+            return render_template('transaction_data.html', account="unlocked", transaction_data=replay_tx,
+                                   status=status, year=year)
         except (ValueError, TransactionNotFound) as e:
             flash(f"{e}", 'warning')
             return render_template('transaction_data.html', account="unlocked", year=year)
@@ -413,7 +435,21 @@ def delete_accounts():
     form_create_multiple = CreateMultipleAccountsForm()
     if os.path.exists(__location__ + accounts_file):
         os.remove(__location__ + accounts_file)
-        return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
+        return render_template('create.html', account="new", create_account_form=create_account_form,
+                               form_create_multiple=form_create_multiple, year=year)
     else:
         flash("No accounts exist.", 'warning')
-        return render_template('create.html', account="new", create_account_form=create_account_form, form_create_multiple=form_create_multiple, year=year)
+        return render_template('create.html', account="new", create_account_form=create_account_form,
+                               form_create_multiple=form_create_multiple, year=year)
+
+
+@settings_blueprint.route('/settings', methods=['GET', 'POST'])
+def settings():
+    settings_form = SettingsForm()
+    if request.method == 'GET':
+        if os.path.exists(__location__ + accounts_file):
+            if unlocked:
+                return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
+            if not unlocked:
+                return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form,
+                                       year=year)

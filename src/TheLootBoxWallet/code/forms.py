@@ -116,3 +116,19 @@ class SendVerifyForm(FlaskForm):
         @property
         def csrf_context(self):
             return session
+
+class SettingsForm(FlaskForm):
+    network = StringField('Network endpoint', validators=[InputRequired(), Length(min=0, max=42)])
+    default_address = StringField('Default Ethereum address', validators=[InputRequired(), Length(min=0, max=42)])
+    ens_mainnet_node = StringField('ENS mainnet endpoint', validators=[InputRequired(), Length(min=0, max=42)])
+    submit = SubmitField('Save')
+
+    class Meta:
+        csrf = True
+        csrf_class = SessionCSRF
+        csrf_secret = random.encode()
+        csrf_time_limit = timedelta(minutes=20)
+
+        @property
+        def csrf_context(self):
+            return session

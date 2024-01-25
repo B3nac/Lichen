@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<body class="form_body">
+<div class="form_style">
+<form method="POST" action="settings_modify">
+<h3>Settings</h3>
+<br>
+  {{ settings_form.csrf_token }}
+  {% block data %}
+    {% if account == "unlocked" %}
+      <p>Network url</p>
+      <p>{{ settings_form.network }}</p>
+      <p>Default Ethereum address</p>
+      <p>{{ settings_form.default_address }}</p>
+      <p>ENS Mainnet node url</p>
+      <p>{{ settings_form.ens_mainnet_node }}</p>
+         {{ settings_form.submit(class="btn btn-primary")}}
+      </form>
+{% endif %}
+{% endblock data %}
+</div>
+</body>
+{% endblock %}
