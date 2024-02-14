@@ -26,7 +26,8 @@ from TheLootBoxWallet.code.networks import (
     network,
     ens_mainnet_address,
     ens_resolver,
-    logs
+    logs,
+    configparser
 )
 from eth_account import Account
 from TheLootBoxWallet.code.custom_logs import logger
@@ -52,8 +53,6 @@ unlocked_account = []
 Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
-
-gas_price = network.eth.gas_price
 
 accounts_file = "/accounts.json"
 
@@ -203,13 +202,13 @@ async def populate_public_address_list():
 
 async def get_ens_name(default_address):
     try:
-        if ens_mainnet_address != "":
+        if ens_mainnet_address:
             domain = await ens_resolver.name(default_address)
             if domain is None:
                 domain = "No ENS name associated with this address."
         else:
             domain = None
-    except MissingSchema:
+    except Exception:
         flash(f"No ENS name associated with this address.", 'warning')
 
 
@@ -236,19 +235,32 @@ async def account():
                 unlocked_account.append(decrypt_mnemonic_phrase)
                 global unlocked
                 unlocked = True
-                default_address: str = await get_pub_address_from_config()
-                ens_name: str = await get_ens_name(default_address)
-                wei_balance = network.eth.get_balance(default_address)
                 account_list = await populate_public_address_list()
+                default_address: str = await get_pub_address_from_config()
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
+            try:
+                connected = await network.is_connected()
+                if connected:
+                    default_address: str = await get_pub_address_from_config()
+                    ens_name: str = await get_ens_name(default_address)
+                    wei_balance = await network.eth.get_balance(default_address)
+                    account_balance = await round(network.from_wei(wei_balance, 'ether'), 2)
+                else:
+                    default_address = pub_address
+                    ens_name = ""
+                    account_balance = 0
+            except Exception as e:
+                default_address = pub_address
+                ens_name = "None"
+                account_balance = 0
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                    account_list=account_list, replay_transaction_form=replay_transaction_form,
                                    lookup_account_form=lookup_account_form, year=year,
-                                   account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
+                                   account_balance=account_balance)
     if request.method == 'GET':
         if not unlocked:
             if not os.path.exists(__location__ + accounts_file):
@@ -257,11 +269,18 @@ async def account():
                                        form_create_multiple=form_create_multiple)
         if unlocked:
             default_address: str = await get_pub_address_from_config()
-            ens_name: str = await get_ens_name(default_address)
+            account_list = await populate_public_address_list()
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
-            wei_balance = network.eth.get_balance(default_address)
-            account_list = await populate_public_address_list()
+            try:
+                connected = await network.is_connected()
+                if connected:
+                    ens_name: str = await get_ens_name(default_address)
+                    wei_balance = await network.eth.get_balance(default_address)
+            except Exception as e:
+                ens_name: str = "None"
+                wei_balance = 0
+                flash("No internet connection or invalid rpc urls. Please connect and try again", 'warning')
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
                                    account_list=account_list, replay_transaction_form=replay_transaction_form,
@@ -348,6 +367,7 @@ async def send_verify_transaction():
             to_account = request.form['to_public_address']
             amount = request.form['amount_of_ether']
             default_address: str = await get_pub_address_from_config()
+            gas_price = await network.eth.gas_price
             send_verify_form = SendVerifyForm()
             if ".eth" in to_account:
                 ens_name = ens_resolver.address(to_account)
@@ -453,3 +473,23 @@ def settings():
             if not unlocked:
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form,
                                        year=year)
+    if request.method == 'POST' and unlocked:
+        try:
+            # __location__ = os.path.expanduser('~')
+            # config_file = "/config.ini"
+
+            if os.path.exists(__location__ + config_file):
+                config = configparser.ConfigParser()
+                config.read(__location__ + config_file)
+                config['DEFAULT']['network'] = request.form['network']
+                config['DEFAULT']['default_address'] = request.form['default_address']
+                config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
+                # Write config file here
+            with open(__location__ + config_file, 'w') as thelootboxwalletconfig:
+                config.write(thelootboxwalletconfig)
+                flash("Settings changed successfully!", 'success')
+            return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
+        except Exception as e:
+            flash(f"{e}", 'warning')
+            return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
+
