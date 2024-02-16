@@ -252,7 +252,7 @@ async def account():
                     default_address = pub_address
                     ens_name = ""
                     account_balance = 0
-            except Exception as e:
+            except Exception:
                 default_address = pub_address
                 ens_name = "None"
                 account_balance = 0
@@ -277,7 +277,7 @@ async def account():
                 if connected:
                     ens_name: str = await get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
-            except Exception as e:
+            except Exception:
                 ens_name: str = "None"
                 wei_balance = 0
                 flash("No internet connection or invalid rpc urls. Please connect and try again", 'warning')
@@ -475,16 +475,11 @@ def settings():
                                        year=year)
     if request.method == 'POST' and unlocked:
         try:
-            # __location__ = os.path.expanduser('~')
-            # config_file = "/config.ini"
-
-            if os.path.exists(__location__ + config_file):
-                config = configparser.ConfigParser()
-                config.read(__location__ + config_file)
-                config['DEFAULT']['network'] = request.form['network']
-                config['DEFAULT']['default_address'] = request.form['default_address']
-                config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
-                # Write config file here
+            config = configparser.ConfigParser()
+            config.read(__location__ + config_file)
+            config['DEFAULT']['network'] = request.form['network']
+            config['DEFAULT']['default_address'] = request.form['default_address']
+            config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
             with open(__location__ + config_file, 'w') as thelootboxwalletconfig:
                 config.write(thelootboxwalletconfig)
                 flash("Settings changed successfully!", 'success')
