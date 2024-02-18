@@ -2,7 +2,7 @@
 [tool.briefcase]
 project_name = "TheLootBoxWallet"
 bundle = "com.thelootboxwallet"
-version = "0.2.5"
+version = "0.2.6"
 url = "https://thelootbox-xyz.github.io/"
 license = "MIT"
 author = "Kyle Benac"
