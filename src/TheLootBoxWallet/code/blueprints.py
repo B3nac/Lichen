@@ -474,7 +474,14 @@ def settings():
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form,
                                        year=year)
     if request.method == 'POST' and unlocked:
+        allowed_prefix = ['http://', 'https://']
         try:
+            if any(value in request.form['network'] for value in allowed_prefix) == False:
+                flash("Invalid network url.", 'warning')
+                return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
+            if any(value in request.form['ens_mainnet_node'] for value in allowed_prefix) == False:
+                flash("Invalid mainnet url for ENS lookups.", 'warning')
+                return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
             config = configparser.ConfigParser()
             config.read(__location__ + config_file)
             config['DEFAULT']['network'] = request.form['network']

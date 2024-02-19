@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms.csrf.session import SessionCSRF
 from wtforms import StringField, SubmitField, validators, BooleanField, IntegerField
 from wtforms.widgets import PasswordInput
-from wtforms.validators import InputRequired, Length, URL
+from wtforms.validators import InputRequired, Length
 from datetime import timedelta
 import string
 import secrets
@@ -118,9 +118,9 @@ class SendVerifyForm(FlaskForm):
             return session
 
 class SettingsForm(FlaskForm):
-    network = StringField('Network endpoint', validators=[InputRequired(), URL()])
+    network = StringField('Network endpoint', validators=[InputRequired()])
     default_address = StringField('Default Ethereum address', validators=[InputRequired(), Length(min=42, max=42)])
-    ens_mainnet_node = StringField('ENS mainnet endpoint', validators=[InputRequired(), URL()])
+    ens_mainnet_node = StringField('ENS mainnet endpoint', validators=[InputRequired()])
     submit = SubmitField('Save')
 
     class Meta:
