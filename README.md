@@ -12,11 +12,13 @@ TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a 
 
 - Send Ether. 
 
+- Auto sign and send transactions locally from trusted sources
+
 - Lookup other addresses if multiple were created.
 
 - Runs locally as a self-contained stand-alone application.
 
-- Soon to be cross-platform thanks to BeeWare.
+- Soon to be cross-platform.
 
 ---
 

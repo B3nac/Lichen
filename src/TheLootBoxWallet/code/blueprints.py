@@ -43,6 +43,7 @@ send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
 replay_transaction_blueprint = Blueprint('replay_transaction_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
 settings_blueprint = Blueprint('settings_blueprint', __name__)
+sign_and_send_blueprint = Blueprint('sign_and_send_blueprint', __name__)
 
 year: str = str(datetime.now().year)
 
@@ -494,4 +495,25 @@ def settings():
         except Exception as e:
             flash(f"{e}", 'warning')
             return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
+
+
+@sign_and_send_blueprint.route('/sign_and_send', methods=['POST'])
+async def sign_and_send():
+    if request.method == 'POST' and unlocked:
+        tx_variables = request.json
+        nonce = await network.eth.get_transaction_count(tx_variables['from'], 'pending')
+        gas_price = await network.eth.gas_price
+        try:
+            tx = {
+                    'nonce': nonce,
+                    'to': tx_variables['to'],
+                    'value': network.to_wei(tx_variables['value'], 'ether'),
+                    'gas': network.to_wei('0.03', 'gwei'),
+                    'gasPrice': gas_price,
+                    'from': tx_variables['from']
+                }
+            sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
+            sent_transaction = await network.eth.send_raw_transaction(sign.rawTransaction)
+        except Exception as e:
+            logger.debug(e)
 
