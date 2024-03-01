@@ -31,3 +31,10 @@
 
 * Add async for faster template loading
 * Add verify step to transactions
+
+## 0.2.6
+
+* Added a settings page so configuration can be done with the UI
+* Async improvements
+* Fixed a bug where you couldn't login if the ENS node endpoint was invalid
+* Fixed a bug where an exception occurred if there was a config file with no log option value
