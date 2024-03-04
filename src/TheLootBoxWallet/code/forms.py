@@ -58,21 +58,6 @@ class LookupAccountForm(FlaskForm):
             return session
 
 
-class ReplayTransactionForm(FlaskForm):
-    tx_hash = StringField('Replay Transaction', validators=[InputRequired(), Length(min=0, max=66)])
-    replay_transaction = SubmitField('Replay Transaction')
-
-    class Meta:
-        csrf = True
-        csrf_class = SessionCSRF
-        csrf_secret = random.encode()
-        csrf_time_limit = timedelta(minutes=20)
-
-        @property
-        def csrf_context(self):
-            return session
-
-
 class UnlockAccountForm(FlaskForm):
     account_key = StringField('Account unlock key', validators=[InputRequired(), Length(min=44, max=44)])
     submit = SubmitField('Unlock account')

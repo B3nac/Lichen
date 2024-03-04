@@ -12,7 +12,6 @@ from flask import Blueprint, render_template, request, flash, abort
 from TheLootBoxWallet.code.forms import (
     CreateAccountForm,
     UnlockAccountForm,
-    ReplayTransactionForm,
     SendEtherForm,
     CreateMultipleAccountsForm,
     LookupAccountForm,
@@ -40,7 +39,6 @@ account_lookup_blueprint = Blueprint('account_lookup_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
 send_verify_blueprint = Blueprint('send_verify_blueprint', __name__)
 send_transaction_blueprint = Blueprint('send_transaction_blueprint', __name__)
-replay_transaction_blueprint = Blueprint('replay_transaction_blueprint', __name__)
 delete_accounts_blueprint = Blueprint('delete_accounts_blueprint', __name__)
 settings_blueprint = Blueprint('settings_blueprint', __name__)
 sign_and_send_blueprint = Blueprint('sign_and_send_blueprint', __name__)
@@ -85,13 +83,12 @@ async def index():
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists(__location__ + accounts_file) and unlocked:
             lookup_account_form = LookupAccountForm()
-            replay_transaction_form = ReplayTransactionForm()
             default_address: str = await get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
             account_list = await populate_public_address_list()
             return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form,
-                                   replay_transaction_form=replay_transaction_form, pub_address=default_address,
-                                   private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
+                                   pub_address=default_address, private_key=unlocked_account[1],
+                                   mnemonic_phrase=unlocked_account[2],
                                    account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
 
@@ -215,7 +212,6 @@ async def get_ens_name(default_address):
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 async def account():
-    replay_transaction_form = ReplayTransactionForm()
     create_account_form = CreateAccountForm()
     lookup_account_form = LookupAccountForm()
     unlock_account_form = UnlockAccountForm()
@@ -259,7 +255,7 @@ async def account():
                 account_balance = 0
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
-                                   account_list=account_list, replay_transaction_form=replay_transaction_form,
+                                   account_list=account_list,
                                    lookup_account_form=lookup_account_form, year=year,
                                    account_balance=account_balance)
     if request.method == 'GET':
@@ -284,7 +280,7 @@ async def account():
                 flash("No internet connection or invalid rpc urls. Please connect and try again", 'warning')
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
-                                   account_list=account_list, replay_transaction_form=replay_transaction_form,
+                                   account_list=account_list,
                                    lookup_account_form=lookup_account_form,
                                    year=year,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2))
@@ -295,7 +291,6 @@ async def account():
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 async def account_lookup():
     lookup_account_form = LookupAccountForm()
-    replay_transaction_form = ReplayTransactionForm()
     default_address: str = await get_pub_address_from_config()
 
     if request.method == 'POST':
@@ -316,8 +311,7 @@ async def account_lookup():
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                    account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                                   lookup_account_form=lookup_account_form,
-                                   replay_transaction_form=replay_transaction_form, year=year)
+                                   lookup_account_form=lookup_account_form, year=year)
         except (InvalidSignature, InvalidToken, ValueError, IndexError):
             flash("Invalid account key or account id", 'warning')
             wei_balance = network.eth.get_balance(default_address)
@@ -326,15 +320,12 @@ async def account_lookup():
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                                   lookup_account_form=lookup_account_form,
-                                   replay_transaction_form=replay_transaction_form, year=year)
-
+                                   lookup_account_form=lookup_account_form, year=year)
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=account_list,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                               lookup_account_form=lookup_account_form, replay_transaction_form=replay_transaction_form,
-                               year=year)
+                               lookup_account_form=lookup_account_form, year=year)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
@@ -400,7 +391,6 @@ async def send_verify_transaction():
 async def send_transaction():
     if request.method == 'POST' and unlocked:
         lookup_account_form = LookupAccountForm()
-        replay_transaction_form = ReplayTransactionForm()
         default_address: str = await get_pub_address_from_config()
         wei_balance = network.eth.get_balance(default_address)
         account_list = await populate_public_address_list()
@@ -421,33 +411,10 @@ async def send_transaction():
         return render_template('account.html', account="unlocked", pub_address=default_address,
                                private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                account_list=account_list, lookup_account_form=lookup_account_form,
-                               replay_transaction_form=replay_transaction_form,
                                account_balance=round(network.from_wei(wei_balance, 'ether'), 2), year=year)
     else:
         unlock_account_form = UnlockAccountForm()
         return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
-
-
-@replay_transaction_blueprint.route('/replay', methods=['POST'])
-def replay_transaction():
-    if request.method == 'POST' and unlocked:
-        tx = request.form['tx_hash']
-        try:
-            tx_hash = network.eth.get_transaction(tx)
-
-            replay_tx = {
-                'to': tx_hash['to'],
-                'from': tx_hash['from'],
-                'value': tx_hash['value'],
-                'data': tx_hash['input'],
-            }
-
-            status = network.eth.call(replay_tx, tx_hash.blockNumber - 1)
-            return render_template('transaction_data.html', account="unlocked", transaction_data=replay_tx,
-                                   status=status, year=year)
-        except (ValueError, TransactionNotFound) as e:
-            flash(f"{e}", 'warning')
-            return render_template('transaction_data.html', account="unlocked", year=year)
 
 
 @delete_accounts_blueprint.route('/delete', methods=['POST'])
