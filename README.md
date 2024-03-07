@@ -1,6 +1,6 @@
 # TheLootBoxWallet
 
-TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets powered by Toga and coffee .
+TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets powered by Toga and coffee.
 
 ---
 
@@ -15,8 +15,6 @@ TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a 
 - Auto sign and send transactions locally from trusted sources
 
 - Lookup other addresses if multiple were created.
-
-- Runs locally as a self-contained stand-alone application.
 
 - Soon to be cross-platform.
 
@@ -78,7 +76,6 @@ Example `config.ini` file:
 network = https://goerli-rollup.arbitrum.io/rpc
 default_address = your_public_ethereum_address
 ens_mainnet_node = your_mainnet_node_url
-logs = False
 ```
 
 ### Preview screenshot
