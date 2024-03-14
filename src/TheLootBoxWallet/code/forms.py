@@ -11,6 +11,7 @@ import secrets
 alphabet = string.ascii_letters + string.digits
 random = ''.join(secrets.choice(alphabet) for i in range(15))
 
+
 class CreateAccountForm(FlaskForm):
     create = SubmitField('Create new account')
 
@@ -88,6 +89,7 @@ class SendEtherForm(FlaskForm):
         def csrf_context(self):
             return session
 
+
 class SendVerifyForm(FlaskForm):
     gas_amount = StringField('Amount of gas', validators=[InputRequired(), Length(min=0, max=42)])
     submit = SubmitField('Send')
@@ -101,6 +103,7 @@ class SendVerifyForm(FlaskForm):
         @property
         def csrf_context(self):
             return session
+
 
 class SettingsForm(FlaskForm):
     network = StringField('Network endpoint', validators=[InputRequired()])

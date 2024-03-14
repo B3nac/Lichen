@@ -200,12 +200,16 @@ async def populate_public_address_list():
 
 async def get_ens_name(default_address):
     try:
-        if ens_mainnet_address:
+        if ens_mainnet_address is not None:
             domain = await ens_resolver.name(default_address)
             if domain is None:
                 domain = "No ENS name associated with this address."
+                return domain
+            if domain:
+                return domain
         else:
-            domain = None
+            domain = "No ENS name associated with this address."
+            return domain
     except Exception:
         flash(f"No ENS name associated with this address.", 'warning')
 
@@ -233,7 +237,6 @@ async def account():
                 global unlocked
                 unlocked = True
                 account_list = await populate_public_address_list()
-                default_address: str = await get_pub_address_from_config()
         except (InvalidSignature, InvalidToken, ValueError):
             flash("Invalid account key.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
