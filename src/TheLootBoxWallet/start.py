@@ -3,6 +3,7 @@ import toga
 from threading import Thread
 from werkzeug.serving import make_server
 
+
 class ServerThread(Thread):
 
     def __init__(self, app):
@@ -17,6 +18,7 @@ class ServerThread(Thread):
 
     def shutdown(self):
         self.server.shutdown()
+
 
 class Positron(toga.App):
     def web_server(self):
@@ -41,6 +43,7 @@ class Positron(toga.App):
         self.main_window = toga.MainWindow(title=self.formal_name)
         self.main_window.content = self.web_view
         self.main_window.show()
+
 
 def main():
     return Positron()
