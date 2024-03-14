@@ -35,10 +35,10 @@ app.register_blueprint(sign_and_send_blueprint)
 
 
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found():
     return render_template('404.html'), 404
 
 
 @app.errorhandler(405)
-def method_not_allowed(e):
+def method_not_allowed():
     return render_template('405.html'), 405

@@ -321,11 +321,6 @@ async def account_lookup():
                                    account_list=account_list,
                                    account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
                                    lookup_account_form=lookup_account_form, year=year)
-        return render_template('account.html', account="unlocked", pub_address=default_address,
-                               private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
-                               account_list=account_list,
-                               account_balance=round(network.from_wei(wei_balance, 'ether'), 2),
-                               lookup_account_form=lookup_account_form, year=year)
 
 
 @send_ether_blueprint.route('/send', methods=['GET'])
@@ -382,9 +377,9 @@ async def send_verify_transaction():
         except Exception as e:
             flash(f"{e}", 'warning')
             return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
-        else:
-            unlock_account_form = UnlockAccountForm()
-            return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
+    else:
+        unlock_account_form = UnlockAccountForm()
+        return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
 
 
 @send_transaction_blueprint.route('/send_transaction', methods=['POST'])
@@ -444,10 +439,10 @@ def settings():
     if request.method == 'POST' and unlocked:
         allowed_prefix = ['http://', 'https://']
         try:
-            if any(value in request.form['network'] for value in allowed_prefix) == False:
+            if not any(value in request.form['network'] for value in allowed_prefix):
                 flash("Invalid network url.", 'warning')
                 return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
-            if any(value in request.form['ens_mainnet_node'] for value in allowed_prefix) == False:
+            if not any(value in request.form['ens_mainnet_node'] for value in allowed_prefix):
                 flash("Invalid mainnet url for ENS lookups.", 'warning')
                 return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
             config = configparser.ConfigParser()
@@ -455,8 +450,8 @@ def settings():
             config['DEFAULT']['network'] = request.form['network']
             config['DEFAULT']['default_address'] = request.form['default_address']
             config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
-            with open(__location__ + config_file, 'w') as thelootboxwalletconfig:
-                config.write(thelootboxwalletconfig)
+            with open(__location__ + config_file, 'w') as thelootbox_wallet_config:
+                config.write(thelootbox_wallet_config)
                 flash("Settings changed successfully!", 'success')
             return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
         except Exception as e:
@@ -480,7 +475,7 @@ async def sign_and_send():
                     'from': tx_variables['from']
                 }
             sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
-            sent_transaction = await network.eth.send_raw_transaction(sign.rawTransaction)
+            await network.eth.send_raw_transaction(sign.rawTransaction)
         except Exception as e:
             logger.debug(e)
 
