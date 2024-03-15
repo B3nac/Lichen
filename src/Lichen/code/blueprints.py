@@ -9,7 +9,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
 from flask import Blueprint, render_template, request, flash, abort
 
-from TheLootBoxWallet.code.forms import (
+from Lichen.code.forms import (
     CreateAccountForm,
     UnlockAccountForm,
     SendEtherForm,
@@ -18,7 +18,7 @@ from TheLootBoxWallet.code.forms import (
     SendVerifyForm,
     SettingsForm
 )
-from TheLootBoxWallet.code.networks import (
+from Lichen.code.networks import (
     __location__,
     config_file,
     address,
@@ -29,7 +29,7 @@ from TheLootBoxWallet.code.networks import (
     configparser
 )
 from eth_account import Account
-from TheLootBoxWallet.code.custom_logs import logger
+from Lichen.code.custom_logs import logger
 
 index_blueprint = Blueprint('index_blueprint', __name__)
 create_account_blueprint = Blueprint('create_account_blueprint', __name__)
@@ -453,8 +453,8 @@ def settings():
             config['DEFAULT']['network'] = request.form['network']
             config['DEFAULT']['default_address'] = request.form['default_address']
             config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
-            with open(__location__ + config_file, 'w') as thelootbox_wallet_config:
-                config.write(thelootbox_wallet_config)
+            with open(__location__ + config_file, 'w') as lichen_config:
+                config.write(lichen_config)
                 flash("Settings changed successfully!", 'success')
             return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
         except Exception as e:

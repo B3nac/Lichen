@@ -1,6 +1,6 @@
 import logging
 
-logging.basicConfig(filename='TheLootBoxWallet.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename='Lichen.log', encoding='utf-8', level=logging.INFO)
 
 logging.getLogger("web3.RequestManager").setLevel(logging.WARNING)
 logging.getLogger("web3.providers.HTTPProvider").setLevel(logging.WARNING)

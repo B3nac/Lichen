@@ -61,5 +61,5 @@ var/
 # Briefcase log files
 logs/
 
-#TheLootBoxWallet accounts file
+#Lichen accounts file
 accounts.json

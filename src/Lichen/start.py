@@ -1,4 +1,4 @@
-from TheLootBoxWallet.code.app import app
+from Lichen.code.app import app
 import toga
 from threading import Thread
 from werkzeug.serving import make_server

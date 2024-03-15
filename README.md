@@ -1,6 +1,6 @@
-# TheLootBoxWallet
+# Lichen
 
-TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a focus on privacy and security. A lockbox for your ethereum assets powered by Toga and coffee.
+Lichen is an Ethereum utility that runs locally on your desktop with a focus on privacy and security.
 
 ---
 
@@ -26,13 +26,13 @@ TheLootBoxWallet is an Ethereum wallet that runs locally on your desktop with a 
 
 - Download the deb file from the latest release.
 
-https://github.com/TheLootBox-xyz/TheLootBoxWallet/releases
+https://github.com/B3nac/Lichen/releases
 
 - Run the install command.
 
-`sudo dpkg -i thelootboxwallet-release`
+`sudo dpkg -i lichen-release`
 
-- Start thelootboxwallet from `/usr/bin/TheLootBoxWallet` or from TheLootBoxWallet app shortcut via the Show Applications menu.
+- Start Lichen from `/usr/bin/Lichen` or from Lichen app shortcut via the Show Applications menu.
 
 ---
 
@@ -66,7 +66,7 @@ Build and run the app.
 
 ### Customize default settings
 
-You can customize the default network and ethereum account with a `config.ini` file. If you don't have a `config.ini` file TheLootBoxWallet will use the first public address created as the default address.
+You can customize the default network and ethereum account with a `config.ini` file. If you don't have a `config.ini` file LichenWallet will use the first public address created as the default address.
 
 Example `config.ini` file:
 
@@ -80,9 +80,9 @@ ens_mainnet_node = your_mainnet_node_url
 
 ### Preview screenshot
 
-![TheLootBoxClient](src/TheLootBoxWallet/code/static/images/TheLootBoxWallet.png)
+![Lichen](src/Lichen/code/static/images/Lichen.png)
 
 ### Supporting development
 
-https://www.buymeacoffee.com/thelootbox
+TBD.
 

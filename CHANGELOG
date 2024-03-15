@@ -1,4 +1,4 @@
-# TheLootBoxWallet Release Notes
+# Lichen Release Notes
 
 ## 0.2.0 (28 Jun 2023)
 
@@ -38,3 +38,7 @@
 * Async improvements
 * Fixed a bug where you couldn't login if the ENS node endpoint was invalid
 * Fixed a bug where an exception occurred if there was a config file with no log option value
+
+## 0.2.7
+
+* Changed name to Lichen and updated description
