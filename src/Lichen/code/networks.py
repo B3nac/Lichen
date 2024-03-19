@@ -5,7 +5,7 @@ from ens import AsyncENS
 
 __location__ = os.path.expanduser('~')
 
-config_file = "/config.ini"
+config_file = "/lichen.ini"
 
 if os.path.exists(__location__ + config_file):
     config = configparser.ConfigParser()

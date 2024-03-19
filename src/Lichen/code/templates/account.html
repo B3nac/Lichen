@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+<meta http-equiv="refresh" content="30">
 <script>
     function delete_flash(flash){
         $(flash).remove()
@@ -72,7 +73,7 @@
       <br>
       <p>Public addresses</p>
       {% for account in account_list %}
-      <input type="text" value="{{ account['public_address'] }}" size="35"><br><br>
+      <input type="text" value="{{ account }}" size="35"><br><br>
       {% endfor %}
     </div>
     {% else %}

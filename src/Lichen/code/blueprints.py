@@ -1,9 +1,7 @@
-import json
 import os
 from datetime import datetime
 from web3.exceptions import TransactionNotFound
 from requests.exceptions import MissingSchema
-
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
@@ -30,6 +28,7 @@ from Lichen.code.networks import (
 )
 from eth_account import Account
 from Lichen.code.custom_logs import logger
+from Lichen.code import utils
 
 index_blueprint = Blueprint('index_blueprint', __name__)
 create_account_blueprint = Blueprint('create_account_blueprint', __name__)
@@ -53,21 +52,9 @@ Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
 
-accounts_file = "/accounts.json"
+accounts_file = "/lichen.db"
 
 tx_list = []
-
-
-async def get_pub_address_from_config():
-    if os.path.exists(__location__ + config_file):
-        default_address = address
-        if default_address == unlocked_account[0]:
-            return default_address
-        else:
-            return unlocked_account[0]
-    else:
-        default_address = unlocked_account[0]
-        return default_address
 
 
 @index_blueprint.route('/', methods=['GET'])
@@ -83,9 +70,9 @@ async def index():
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists(__location__ + accounts_file) and unlocked:
             lookup_account_form = LookupAccountForm()
-            default_address: str = await get_pub_address_from_config()
+            default_address: str = await utils.get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
-            account_list = await populate_public_address_list()
+            account_list = await utils.populate_public_address_list()
             return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form,
                                    pub_address=default_address, private_key=unlocked_account[1],
                                    mnemonic_phrase=unlocked_account[2],
@@ -155,63 +142,16 @@ async def create_fresh():
         create_account_form = CreateAccountForm()
         form_create_multiple = CreateMultipleAccountsForm()
         new_eth_account, mnemonic = Account.create_with_mnemonic()
-        wallet_key = Fernet.generate_key().decode("utf-8")
+        wallet_key = Fernet.generate_key().decode('utf-8')
         try:
-            await create_account_callback(new_eth_account, mnemonic, wallet_key)
+            await create_account_callback(new_eth_account, wallet_key, mnemonic)
             return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                    private_key=new_eth_account.key.hex(),
-                                   mnemonic_phrase=mnemonic, wallet_key=wallet_key,
+                                   wallet_key=wallet_key, mnemonic_phrase=mnemonic,
                                    create_account_form=create_account_form,
                                    form_create_multiple=form_create_multiple, year=year)
         except eth_utils.exceptions.ValidationError as e:
             flash(f"{e}, probably incorrect format.", 'warning')
-
-
-async def create_account_callback(new_eth_account, mnemonic, wallet_key):
-    if not os.path.exists(__location__ + accounts_file):
-        account_id = 0
-        no_plaintext = Fernet(wallet_key)
-        pub_address = new_eth_account.address
-        private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
-        mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic, encoding='utf8'))
-        await save_account_info(pub_address, mnemonic_phrase, private_key, account_id)
-
-
-async def save_account_info(pub_address, mnemonic_phrase, private_key, account_id):
-    account_info = {'id': int(account_id), 'public_address': str(pub_address),
-                    'private_key': str(private_key.decode("utf-8")),
-                    'mnemonic_phrase': str(mnemonic_phrase.decode("utf-8"))}
-    accounts_list.append(account_info)
-    with open(__location__ + accounts_file, 'w', encoding='utf-8') as accounts:
-        json.dump(accounts_list, accounts, ensure_ascii=False, indent=4)
-
-
-async def populate_public_address_list():
-    public_address_list = []
-    with open(__location__ + accounts_file, 'r') as accounts_from_file:
-        account_data_json = json.load(accounts_from_file)
-        for account_id in account_data_json:
-            try:
-                public_address_list.append(account_data_json[account_id['id']])
-            except IndexError as e:
-                flash(f"{e}, No account exists with id {account_id}.", 'warning')
-    return public_address_list
-
-
-async def get_ens_name(default_address):
-    try:
-        if ens_mainnet_address is not None:
-            domain = await ens_resolver.name(default_address)
-            if domain is None:
-                domain = "No ENS name associated with this address."
-                return domain
-            if domain:
-                return domain
-        else:
-            domain = "No ENS name associated with this address."
-            return domain
-    except Exception:
-        flash(f"No ENS name associated with this address.", 'warning')
 
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
@@ -224,28 +164,33 @@ async def account():
         try:
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
-            with open(__location__ + accounts_file, 'r') as accounts_from_file:
-                account_data_json = json.load(accounts_from_file)
-                pub_address = account_data_json[int(0)]['public_address']
-                decrypt_private_key = no_plaintext.decrypt(
-                    bytes(account_data_json[int(0)]['private_key'], encoding='utf8')).decode('utf-8')
-                decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                    bytes(account_data_json[int(0)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-                unlocked_account.append(pub_address)
-                unlocked_account.append(decrypt_private_key)
-                unlocked_account.append(decrypt_mnemonic_phrase)
-                global unlocked
-                unlocked = True
-                account_list = await populate_public_address_list()
-        except (InvalidSignature, InvalidToken, ValueError):
-            flash("Invalid account key.", 'warning')
+            connection = utils.get_db_connection()
+            accounts = connection.execute('SELECT * FROM accounts').fetchall()
+            for row in accounts:
+                try:
+                    pub_address = row[1]
+                    decrypt_private_key = no_plaintext.decrypt(
+                    bytes(row[2], encoding='utf8')).decode('utf-8')
+                    decrypt_mnemonic_phrase = no_plaintext.decrypt(
+                    bytes(row[3], encoding='utf8')).decode('utf-8')
+                    unlocked_account.append(pub_address)
+                    unlocked_account.append(decrypt_private_key)
+                    unlocked_account.append(decrypt_mnemonic_phrase)
+                except Exception as e:
+                    logger.debug(e)
+            connection.close()
+            global unlocked
+            unlocked = True
+            account_list = await utils.populate_public_address_list()
+        except (Exception) as e:
+            flash(f"Invalid account key. {e}", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
             try:
                 connected = await network.is_connected()
                 if connected:
-                    default_address: str = await get_pub_address_from_config()
-                    ens_name: str = await get_ens_name(default_address)
+                    default_address: str = await utils.get_pub_address_from_config()
+                    ens_name: str = await utils.get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
                     account_balance = await round(network.from_wei(wei_balance, 'ether'), 2)
                 else:
@@ -268,14 +213,14 @@ async def account():
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple)
         if unlocked:
-            default_address: str = await get_pub_address_from_config()
-            account_list = await populate_public_address_list()
+            default_address: str = await utils.get_pub_address_from_config()
+            account_list = await utils.populate_public_address_list()
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
             try:
                 connected = await network.is_connected()
                 if connected:
-                    ens_name: str = await get_ens_name(default_address)
+                    ens_name: str = await utils.get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
             except Exception:
                 ens_name: str = "None"
@@ -294,7 +239,7 @@ async def account():
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 async def account_lookup():
     lookup_account_form = LookupAccountForm()
-    default_address: str = await get_pub_address_from_config()
+    default_address: str = await utils.get_pub_address_from_config()
 
     if request.method == 'POST':
         try:
@@ -309,7 +254,7 @@ async def account_lookup():
                 decrypt_mnemonic_phrase = no_plaintext.decrypt(
                     bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
                 wei_balance = network.eth.get_balance(pub_address)
-                account_list = await populate_public_address_list()
+                account_list = await utils.populate_public_address_list()
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                    account_list=account_list,
@@ -318,7 +263,7 @@ async def account_lookup():
         except (InvalidSignature, InvalidToken, ValueError, IndexError):
             flash("Invalid account key or account id", 'warning')
             wei_balance = network.eth.get_balance(default_address)
-            account_list = await populate_public_address_list()
+            account_list = await utils.populate_public_address_list()
             return render_template('account.html', account="unlocked", pub_address=default_address,
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],
                                    account_list=account_list,
@@ -356,7 +301,7 @@ async def send_verify_transaction():
         try:
             to_account = request.form['to_public_address']
             amount = request.form['amount_of_ether']
-            default_address: str = await get_pub_address_from_config()
+            default_address: str = await utils.get_pub_address_from_config()
             gas_price = await network.eth.gas_price
             send_verify_form = SendVerifyForm()
             if ".eth" in to_account:
@@ -389,9 +334,9 @@ async def send_verify_transaction():
 async def send_transaction():
     if request.method == 'POST' and unlocked:
         lookup_account_form = LookupAccountForm()
-        default_address: str = await get_pub_address_from_config()
+        default_address: str = await utils.get_pub_address_from_config()
         wei_balance = network.eth.get_balance(default_address)
-        account_list = await populate_public_address_list()
+        account_list = await utils.populate_public_address_list()
         try:
             sign = network.eth.account.sign_transaction(tx_list[0], unlocked_account[1])
             sent_transaction = network.eth.send_raw_transaction(sign.rawTransaction)
