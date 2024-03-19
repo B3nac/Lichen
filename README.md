@@ -18,6 +18,10 @@ Lichen is an Ethereum utility that runs locally on your desktop with a focus on 
 
 - Soon to be cross-platform.
 
+- Works as an auto-signer if unlocked for other desktop app integrations. (In progress)
+
+- Stay tuned for more exciting features. 
+
 ---
 
 ### Install from .deb file release
