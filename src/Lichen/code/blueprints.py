@@ -17,7 +17,6 @@ from Lichen.code.forms import (
     SettingsForm
 )
 from Lichen.code.networks import (
-    __location__,
     config_file,
     address,
     network,
@@ -26,6 +25,7 @@ from Lichen.code.networks import (
     logs,
     configparser
 )
+
 from eth_account import Account
 from Lichen.code.custom_logs import logger
 from Lichen.code import utils
@@ -52,23 +52,21 @@ Account.enable_unaudited_hdwallet_features()
 
 unlocked: bool = False
 
-accounts_file = "/lichen.db"
-
 tx_list = []
 
 
 @index_blueprint.route('/', methods=['GET'])
 async def index():
     if request.method == 'GET':
-        if not os.path.exists(__location__ + accounts_file):
+        if not os.path.exists(utils.__location__ + utils.accounts_file):
             create_account_form = CreateAccountForm()
             form_create_multiple = CreateMultipleAccountsForm()
             return render_template('create.html', account="new", create_account_form=create_account_form,
                                    form_create_multiple=form_create_multiple, year=year)
-        if os.path.exists(__location__ + accounts_file) and not unlocked:
+        if os.path.exists(utils.__location__ + utils.accounts_file) and not unlocked:
             unlock_account_form = UnlockAccountForm()
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
-        if os.path.exists(__location__ + accounts_file) and unlocked:
+        if os.path.exists(utils.__location__ + utils.accounts_file) and unlocked:
             lookup_account_form = LookupAccountForm()
             default_address: str = await utils.get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
@@ -87,7 +85,7 @@ async def create_account():
     form_create_multiple = CreateMultipleAccountsForm()
 
     if request.method == 'GET':
-        if os.path.exists(__location__ + accounts_file) and account != "unlocked":
+        if os.path.exists(utils.__location__ + utils.accounts_file) and account != "unlocked":
             flash("Account already exists, please delete the old account.", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
@@ -103,16 +101,7 @@ async def create_account():
             no_plaintext = Fernet(wallet_key)
             number_of_accounts = int(number_of_accounts)
             try:
-                if os.path.exists(__location__ + accounts_file):
-                    with open(__location__ + accounts_file, 'r') as account_check:
-                        current_accounts = json.load(account_check)
-                    for number in range(number_of_accounts):
-                        try:
-                            if current_accounts[number]:
-                                continue
-                        except IndexError:
-                            multiple_accounts_list.append(number)
-                if not os.path.exists(__location__ + accounts_file):
+                if not os.path.exists(utils.__location__ + utils.accounts_file):
                     if number_of_accounts == '':
                         number_of_accounts = 0
                     for number in range(number_of_accounts):
@@ -121,7 +110,7 @@ async def create_account():
                         pub_address = new_eth_account.address
                         private_key = no_plaintext.encrypt(bytes(new_eth_account.key.hex(), encoding='utf8'))
                         mnemonic_phrase = no_plaintext.encrypt(bytes(mnemonic_field_value, encoding='utf8'))
-                        await save_account_info(pub_address, mnemonic_phrase, private_key, number)
+                        await utils.save_account_info(pub_address, private_key, mnemonic_phrase)
                     multiple_accounts_list.clear()
                     return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                            private_key=new_eth_account.key.hex(),
@@ -144,7 +133,7 @@ async def create_fresh():
         new_eth_account, mnemonic = Account.create_with_mnemonic()
         wallet_key = Fernet.generate_key().decode('utf-8')
         try:
-            await create_account_callback(new_eth_account, wallet_key, mnemonic)
+            await utils.create_account_callback(new_eth_account, wallet_key, mnemonic)
             return render_template('account.html', account="new", pub_address=new_eth_account.address,
                                    private_key=new_eth_account.key.hex(),
                                    wallet_key=wallet_key, mnemonic_phrase=mnemonic,
@@ -208,7 +197,7 @@ async def account():
                                    account_balance=account_balance)
     if request.method == 'GET':
         if not unlocked:
-            if not os.path.exists(__location__ + accounts_file):
+            if not os.path.exists(utils.__location__ + utils.accounts_file):
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple)
@@ -246,7 +235,7 @@ async def account_lookup():
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
             lookup_account = request.form['account_id']
-            with open(__location__ + accounts_file, 'r') as accounts_from_file:
+            with open(utils.__location__ + utils.accounts_file, 'r') as accounts_from_file:
                 account_data_json = json.load(accounts_from_file)
                 pub_address = account_data_json[int(lookup_account)]['public_address']
                 decrypt_private_key = no_plaintext.decrypt(
@@ -279,14 +268,14 @@ def send():
     form_create_multiple = CreateMultipleAccountsForm()
     if request.method == 'GET':
         if not unlocked:
-            if not os.path.exists(__location__ + accounts_file):
+            if not os.path.exists(utils.__location__ + utils.accounts_file):
                 flash("No accounts exist, please create an account.", 'warning')
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple, year=year)
             else:
                 return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form,
                                        year=year)
-        if os.path.exists(__location__ + accounts_file):
+        if os.path.exists(utils.__location__ + utils.accounts_file):
             if unlocked:
                 return render_template('send.html', account="unlocked", send_ether_form=send_ether_form, year=year)
             if not unlocked:
@@ -364,8 +353,8 @@ async def send_transaction():
 def delete_accounts():
     create_account_form = CreateAccountForm()
     form_create_multiple = CreateMultipleAccountsForm()
-    if os.path.exists(__location__ + accounts_file):
-        os.remove(__location__ + accounts_file)
+    if os.path.exists(utils.__location__ + utils.accounts_file):
+        os.remove(utils.__location__ + utils.accounts_file)
         return render_template('create.html', account="new", create_account_form=create_account_form,
                                form_create_multiple=form_create_multiple, year=year)
     else:
@@ -378,7 +367,7 @@ def delete_accounts():
 def settings():
     settings_form = SettingsForm()
     if request.method == 'GET':
-        if os.path.exists(__location__ + accounts_file):
+        if os.path.exists(utils.__location__ + utils.accounts_file):
             if unlocked:
                 return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
             if not unlocked:
@@ -394,11 +383,11 @@ def settings():
                 flash("Invalid mainnet url for ENS lookups.", 'warning')
                 return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
             config = configparser.ConfigParser()
-            config.read(__location__ + config_file)
+            config.read(utils.__location__ + utils.config_file)
             config['DEFAULT']['network'] = request.form['network']
             config['DEFAULT']['default_address'] = request.form['default_address']
             config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
-            with open(__location__ + config_file, 'w') as lichen_config:
+            with open(utils.__location__ + config_file, 'w') as lichen_config:
                 config.write(lichen_config)
                 flash("Settings changed successfully!", 'success')
             return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)

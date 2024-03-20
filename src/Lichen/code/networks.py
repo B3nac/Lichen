@@ -2,8 +2,7 @@ import os.path
 from web3 import AsyncWeb3, AsyncHTTPProvider
 import configparser
 from ens import AsyncENS
-
-__location__ = os.path.expanduser('~')
+from Lichen.code.utils import __location__
 
 config_file = "/lichen.ini"
 

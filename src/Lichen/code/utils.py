@@ -1,4 +1,11 @@
+import os
 import sqlite3
+from cryptography.fernet import Fernet
+from Lichen.code.custom_logs import logger
+
+__location__ = os.path.expanduser('~')
+accounts_file = "/lichen.db"
+
 
 async def get_pub_address_from_config():
     if os.path.exists(__location__ + config_file):
@@ -25,14 +32,27 @@ async def save_account_info(pub_address, private_key, mnemonic_phrase):
     connection = sqlite3.connect('lichen.db')
     decode_private_key = private_key.decode('utf-8')
     decode_mnemonic = mnemonic_phrase.decode('utf-8')
-    with open('/usr/lib/Lichen/app/Lichen/schema.sql') as f:
-        connection.executescript(f.read())
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
-            (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
-            )
-    connection.commit()
-    connection.close()
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='accounts';")
+        accounts_list = cursor.fetchall()
+        if accounts_list == []:
+            with open('/usr/lib/Lichen/app/Lichen/schema.sql') as f:
+                connection.executescript(f.read())
+            cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
+                    (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
+                    )
+            connection.commit()
+
+        elif accounts_list:
+            cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
+                    (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
+                    )
+            connection.commit()
+    except Exception as e:
+        logger.debug(e)
+    finally:
+        connection.close()
 
 async def populate_public_address_list():
     public_address_list = []
