@@ -17,7 +17,6 @@ from Lichen.code.forms import (
     SettingsForm
 )
 from Lichen.code.networks import (
-    # config_file,
     address,
     network,
     ens_mainnet_address,
