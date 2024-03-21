@@ -81,7 +81,8 @@ async def get_ens_name(default_address):
             domain = "No ENS name associated with this address."
             return domain
     except Exception:
-        flash(f"No ENS name associated with this address.", 'warning')
+        domain = "No ENS name associated with this address."
+        return domain
 
 
 def get_db_connection():

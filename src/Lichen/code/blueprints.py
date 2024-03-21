@@ -177,7 +177,7 @@ async def account():
             try:
                 connected = await network.is_connected()
                 if connected:
-                    default_address: str = await utils.get_pub_address_from_config()
+                    default_address: str = unlocked_account[0]
                     ens_name: str = await utils.get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
                     account_balance = await round(network.from_wei(wei_balance, 'ether'), 2)
@@ -201,7 +201,7 @@ async def account():
                 return render_template('create.html', account="new", create_account_form=create_account_form,
                                        form_create_multiple=form_create_multiple)
         if unlocked:
-            default_address: str = await utils.get_pub_address_from_config()
+            default_address: str = unlocked_account[0]
             account_list = await utils.populate_public_address_list()
             private_key = unlocked_account[1]
             mnemonic_phrase = unlocked_account[2]
@@ -210,10 +210,10 @@ async def account():
                 if connected:
                     ens_name: str = await utils.get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
-            except Exception:
+            except Exception as e:
                 ens_name: str = "None"
                 wei_balance = 0
-                flash("No internet connection or invalid rpc urls. Please connect and try again", 'warning')
+                flash(f"No internet connection or invalid rpc urls. Please connect and try again {e}", 'warning')
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
                                    account_list=account_list,
@@ -238,21 +238,21 @@ async def account_lookup():
             account_list = []
             wei_balance = 0
             connection = utils.get_db_connection()
-            accounts = connection.execute(f'SELECT * FROM accounts WHERE id={lookup_account}').fetchall()
-            for account_id in accounts:
+            account = connection.execute(f'SELECT * FROM accounts WHERE id={lookup_account}').fetchone()
+            if account:
                 try:
-                    pub_address = account_id[1]
+                    pub_address = account[1]
                     decrypt_private_key = no_plaintext.decrypt(
-                        bytes(account_id[2], encoding='utf8')).decode('utf-8')
+                        bytes(account[2], encoding='utf8')).decode('utf-8')
                     decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                        bytes(account_id[3], encoding='utf8')).decode('utf-8')
+                        bytes(account[3], encoding='utf8')).decode('utf-8')
                     wei_balance = await network.eth.get_balance(pub_address)
                     account_list = await utils.populate_public_address_list()
                     connection.close()
                 except IndexError as e:
                     flash(f"{e}, No account exists with id {account_id}.", 'warning')
                     connection.close()
-            if pub_address == "":
+            else:
                 flash(f"No account exists with id {lookup_account}.", 'warning')
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
