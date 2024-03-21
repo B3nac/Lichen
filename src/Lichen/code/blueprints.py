@@ -17,7 +17,7 @@ from Lichen.code.forms import (
     SettingsForm
 )
 from Lichen.code.networks import (
-    config_file,
+    # config_file,
     address,
     network,
     ens_mainnet_address,
@@ -228,22 +228,33 @@ async def account():
 @account_lookup_blueprint.route('/lookup', methods=['POST'])
 async def account_lookup():
     lookup_account_form = LookupAccountForm()
-    default_address: str = await utils.get_pub_address_from_config()
-
     if request.method == 'POST':
         try:
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
             lookup_account = request.form['account_id']
-            with open(utils.__location__ + utils.accounts_file, 'r') as accounts_from_file:
-                account_data_json = json.load(accounts_from_file)
-                pub_address = account_data_json[int(lookup_account)]['public_address']
-                decrypt_private_key = no_plaintext.decrypt(
-                    bytes(account_data_json[int(lookup_account)]['private_key'], encoding='utf8')).decode('utf-8')
-                decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                    bytes(account_data_json[int(lookup_account)]['mnemonic_phrase'], encoding='utf8')).decode('utf-8')
-                wei_balance = network.eth.get_balance(pub_address)
-                account_list = await utils.populate_public_address_list()
+            pub_address = ""
+            decrypt_private_key = None
+            decrypt_mnemonic_phrase = None
+            account_list = []
+            wei_balance = 0
+            connection = utils.get_db_connection()
+            accounts = connection.execute(f'SELECT * FROM accounts WHERE id={lookup_account}').fetchall()
+            for account_id in accounts:
+                try:
+                    pub_address = account_id[1]
+                    decrypt_private_key = no_plaintext.decrypt(
+                        bytes(account_id[2], encoding='utf8')).decode('utf-8')
+                    decrypt_mnemonic_phrase = no_plaintext.decrypt(
+                        bytes(account_id[3], encoding='utf8')).decode('utf-8')
+                    wei_balance = await network.eth.get_balance(pub_address)
+                    account_list = await utils.populate_public_address_list()
+                    connection.close()
+                except IndexError as e:
+                    flash(f"{e}, No account exists with id {account_id}.", 'warning')
+                    connection.close()
+            if pub_address == "":
+                flash(f"No account exists with id {lookup_account}.", 'warning')
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                    account_list=account_list,
@@ -251,7 +262,8 @@ async def account_lookup():
                                    lookup_account_form=lookup_account_form, year=year)
         except (InvalidSignature, InvalidToken, ValueError, IndexError):
             flash("Invalid account key or account id", 'warning')
-            wei_balance = network.eth.get_balance(default_address)
+            default_address = ""
+            wei_balance = 0
             account_list = await utils.populate_public_address_list()
             return render_template('account.html', account="unlocked", pub_address=default_address,
                                    private_key=unlocked_account[1], mnemonic_phrase=unlocked_account[2],

@@ -1,11 +1,11 @@
-import os
+import os   
 import sqlite3
 from cryptography.fernet import Fernet
 from Lichen.code.custom_logs import logger
 
 __location__ = os.path.expanduser('~')
 accounts_file = "/lichen.db"
-
+config_file = "/lichen.ini"
 
 async def get_pub_address_from_config():
     if os.path.exists(__location__ + config_file):

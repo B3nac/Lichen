@@ -2,9 +2,7 @@ import os.path
 from web3 import AsyncWeb3, AsyncHTTPProvider
 import configparser
 from ens import AsyncENS
-from Lichen.code.utils import __location__
-
-config_file = "/lichen.ini"
+from Lichen.code.utils import __location__, config_file
 
 if os.path.exists(__location__ + config_file):
     config = configparser.ConfigParser()
