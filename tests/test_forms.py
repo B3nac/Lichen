@@ -1,5 +1,5 @@
-from app.tests.conftest import app_test as flask_app
-from ..forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm, SendEtherForm, CreateLootBundleForm
+from tests.conftest import app_test as flask_app
+from Lichen.src.Lichen.code.forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm, SendEtherForm, CreateLootBundleForm
 
 class TestCreateAccountForm:
     def test_create_account_form(self):
