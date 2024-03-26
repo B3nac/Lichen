@@ -26,6 +26,19 @@ class CreateAccountForm(FlaskForm):
             return session
 
 
+class CreateAppTokenForm(FlaskForm):
+    create = SubmitField('Create app token')
+
+    class Meta:
+        csrf = True
+        csrf_class = SessionCSRF
+        csrf_secret = random.encode()
+        csrf_time_limit = timedelta(minutes=20)
+
+        @property
+        def csrf_context(self):
+            return session
+
 class CreateMultipleAccountsForm(FlaskForm):
     create_from_mnemonic = StringField('Create account from mnemonic', validators=[InputRequired()])
     number_of_accounts = StringField('Create multiple accounts from mnemonic', validators=[InputRequired()])

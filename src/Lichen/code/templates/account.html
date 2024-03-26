@@ -69,6 +69,15 @@
       </form>
     </div>
     <div class="form_style container">
+    <form method="POST" action="create_app_token">
+    <div class="form-row">
+        <div>
+            <h3>Create app token</h3>
+            <p>Create a token for app integrations</p>
+            {{ create_app_token_form.create(class="btn btn-primary")}}
+        </div>
+      </div>
+      </form>
       <h3>Other accounts</h3>
       <br>
       <p>Public addresses</p>

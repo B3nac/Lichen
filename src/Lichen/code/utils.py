@@ -1,4 +1,5 @@
-import os   
+import os
+import secrets
 import sqlite3
 from cryptography.fernet import Fernet
 from Lichen.code.custom_logs import logger
@@ -56,7 +57,7 @@ async def save_account_info(pub_address, private_key, mnemonic_phrase):
 
 async def populate_public_address_list():
     public_address_list = []
-    connection = get_db_connection()
+    connection = await get_db_connection()
     accounts = connection.execute('SELECT * FROM accounts').fetchall()
     for account_id in accounts:
         try:
@@ -85,8 +86,13 @@ async def get_ens_name(default_address):
         return domain
 
 
-def get_db_connection():
+async def get_db_connection():
     connection = sqlite3.connect('lichen.db')
     connection.row_factory = sqlite3.Row
     return connection
+
+
+async def create_app_secret():
+    token = token_hex(18)  
+    return token 
 

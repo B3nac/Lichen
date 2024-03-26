@@ -141,6 +141,9 @@ async def create_fresh():
         except eth_utils.exceptions.ValidationError as e:
             flash(f"{e}, probably incorrect format.", 'warning')
 
+@create_app_token_blueprint.route('/create_app_token', methods=['POST'])
+async def create_app_token():
+    pass
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 async def account():
@@ -152,7 +155,7 @@ async def account():
         try:
             account_unlock_key = request.form['account_key']
             no_plaintext = Fernet(account_unlock_key)
-            connection = utils.get_db_connection()
+            connection = await utils.get_db_connection()
             accounts = connection.execute('SELECT * FROM accounts').fetchall()
             for row in accounts:
                 try:
@@ -237,7 +240,7 @@ async def account_lookup():
             decrypt_mnemonic_phrase = None
             account_list = []
             wei_balance = 0
-            connection = utils.get_db_connection()
+            connection = await utils.get_db_connection()
             account = connection.execute(f'SELECT * FROM accounts WHERE id={lookup_account}').fetchone()
             if account:
                 try:
