@@ -6,7 +6,7 @@ Lichen is an Ethereum utility that runs locally on your desktop with a focus on 
 
 ### Features
 
-- Account wallet credentials are stored encrypted and decrypted only when the client is in use and unlocked by the account key.
+- Account wallet credentials are stored encrypted and decrypted only when Lichen is in use and unlocked by the account key.
 
 - Create multiple accounts.
 
