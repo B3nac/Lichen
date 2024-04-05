@@ -11,6 +11,7 @@ from Lichen.code.blueprints import (
     index_blueprint,
     create_account_blueprint,
     create_fresh_account_blueprint,
+    create_app_token_blueprint,
     account_blueprint,
     account_lookup_blueprint,
     send_ether_blueprint,
@@ -24,6 +25,7 @@ from Lichen.code.blueprints import (
 app.register_blueprint(index_blueprint)
 app.register_blueprint(create_account_blueprint)
 app.register_blueprint(create_fresh_account_blueprint)
+app.register_blueprint(create_app_token_blueprint)
 app.register_blueprint(account_blueprint)
 app.register_blueprint(account_lookup_blueprint)
 app.register_blueprint(send_ether_blueprint)

@@ -16,16 +16,16 @@ if os.path.exists(__location__ + config_file):
         if config['DEFAULT']['logs']:
             logs = config['DEFAULT']['logs']
     except:
-        network = AsyncWeb3(AsyncHTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
+        network = AsyncWeb3(AsyncHTTPProvider(''))
         address = ""
-        ens_mainnet_address = "https://mainnet.infura.io/v3/c027bbda707e4d6d83124ca432d42e6f"
+        ens_mainnet_address = ""
         ens_mainnet_node = AsyncWeb3(AsyncHTTPProvider(ens_mainnet_address))
         logs = False
         ens_resolver = AsyncENS.from_web3(ens_mainnet_node)
 else:
-    network = AsyncWeb3(AsyncHTTPProvider('https://goerli-rollup.arbitrum.io/rpc'))
+    network = AsyncWeb3(AsyncHTTPProvider(''))
     address = ""
-    ens_mainnet_address = "https://mainnet.infura.io/v3/c027bbda707e4d6d83124ca432d42e6f"
+    ens_mainnet_address = ""
     ens_mainnet_node = AsyncWeb3(AsyncHTTPProvider(ens_mainnet_address))
     logs = False
     ens_resolver = AsyncENS.from_web3(ens_mainnet_node)

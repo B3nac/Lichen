@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<script>
+    function delete_flash(flash){
+        $(flash).remove()
+    }
+</script>
+<body class="form_body">
+<div class="form_style">
+<form>
+<div class="form-row">
+        <div>
+            <h3>Save this api token to use with apps</h3>
+            <p>App api token</p>
+	    <input type="text" value="{{ app_token }}" size="35"><br><br>
+        </div>
+    </div>
+</form>
+</div>
+</body>
+{% endblock %}
+

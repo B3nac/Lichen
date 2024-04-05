@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import sqlite3
 from web3.exceptions import TransactionNotFound
 from requests.exceptions import MissingSchema
 import eth_utils
@@ -9,6 +10,7 @@ from flask import Blueprint, render_template, request, flash, abort
 
 from Lichen.code.forms import (
     CreateAccountForm,
+    CreateAppTokenForm,
     UnlockAccountForm,
     SendEtherForm,
     CreateMultipleAccountsForm,
@@ -32,6 +34,7 @@ from Lichen.code import utils
 index_blueprint = Blueprint('index_blueprint', __name__)
 create_account_blueprint = Blueprint('create_account_blueprint', __name__)
 create_fresh_account_blueprint = Blueprint('create_fresh_account_blueprint', __name__)
+create_app_token_blueprint = Blueprint('create_app_token_blueprint', __name__)
 account_blueprint = Blueprint('account_blueprint', __name__)
 account_lookup_blueprint = Blueprint('account_lookup_blueprint', __name__)
 send_ether_blueprint = Blueprint('send_ether_blueprint', __name__)
@@ -141,13 +144,18 @@ async def create_fresh():
         except eth_utils.exceptions.ValidationError as e:
             flash(f"{e}, probably incorrect format.", 'warning')
 
+
 @create_app_token_blueprint.route('/create_app_token', methods=['POST'])
 async def create_app_token():
-    pass
+    app_name = request.form['app_name']
+    app_token = await utils.create_app_token(app_name)
+    return render_template('display.html', app_token=app_token)
+
 
 @account_blueprint.route('/account', methods=['GET', 'POST'])
 async def account():
     create_account_form = CreateAccountForm()
+    create_app_token_form = CreateAppTokenForm()
     lookup_account_form = LookupAccountForm()
     unlock_account_form = UnlockAccountForm()
     form_create_multiple = CreateMultipleAccountsForm()
@@ -194,6 +202,7 @@ async def account():
                 account_balance = 0
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
+                                   create_app_token_form=create_app_token_form,
                                    account_list=account_list,
                                    lookup_account_form=lookup_account_form, year=year,
                                    account_balance=account_balance)
@@ -219,6 +228,7 @@ async def account():
                 flash(f"No internet connection or invalid rpc urls. Please connect and try again {e}", 'warning')
             return render_template('account.html', account="unlocked", pub_address=default_address, ens_name=ens_name,
                                    private_key=private_key, mnemonic_phrase=mnemonic_phrase,
+                                   create_app_token_form=create_app_token_form,
                                    account_list=account_list,
                                    lookup_account_form=lookup_account_form,
                                    year=year,
@@ -257,6 +267,7 @@ async def account_lookup():
                     connection.close()
             else:
                 flash(f"No account exists with id {lookup_account}.", 'warning')
+                connection.close()
             return render_template('account.html', account="unlocked", pub_address=pub_address,
                                    private_key=decrypt_private_key, mnemonic_phrase=decrypt_mnemonic_phrase,
                                    account_list=account_list,
@@ -416,17 +427,31 @@ async def sign_and_send():
         tx_variables = request.json
         nonce = await network.eth.get_transaction_count(tx_variables['from'], 'pending')
         gas_price = await network.eth.gas_price
-        try:
-            tx = {
-                    'nonce': nonce,
-                    'to': tx_variables['to'],
-                    'value': network.to_wei(tx_variables['value'], 'ether'),
-                    'gas': network.to_wei('0.03', 'gwei'),
-                    'gasPrice': gas_price,
-                    'from': tx_variables['from']
-                }
-            sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
-            await network.eth.send_raw_transaction(sign.rawTransaction)
-        except Exception as e:
-            logger.debug(e)
+        connection = sqlite3.connect('lichen.db')
+        api_token_header = request.headers['X-Lichen-Key']
+        fetch_app_token = connection.execute(f"SELECT * FROM apps WHERE apikey='{api_token_header}'").fetchone()
+        app_token = fetch_app_token[2]
+        if api_token_header == app_token:
+            latest_block =  await network.eth.get_block("latest")
+            base_fee_per_gas = latest_block.baseFeePerGas
+            max_priority_fee_per_gas = network.to_wei(1, 'gwei')
+            max_fee_per_gas = (5 * base_fee_per_gas) + max_priority_fee_per_gas
+            try:
+                tx = {
+                        'nonce': nonce,
+                        'to': tx_variables['to'],
+                        'value': network.to_wei(tx_variables['value'], 'ether'),
+                        'gas': 21000,
+                        'maxFeePerGas': max_fee_per_gas,
+                        'maxPriorityFeePerGas': max_priority_fee_per_gas,
+                        'chainId': tx_variables['chainId'],
+                        'from': tx_variables['from']
+                    }
+                sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
+                sent = await network.eth.send_raw_transaction(sign.rawTransaction)
+            except Exception as e:
+                logger.debug(e)
+                connection.close()
+        connection.close()
+        return "Success!"
 

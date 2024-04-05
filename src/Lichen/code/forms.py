@@ -28,7 +28,7 @@ class CreateAccountForm(FlaskForm):
 
 class CreateAppTokenForm(FlaskForm):
     create = SubmitField('Create app token')
-
+    app_name = StringField('App name', validators=[InputRequired(), Length(max=50)])
     class Meta:
         csrf = True
         csrf_class = SessionCSRF

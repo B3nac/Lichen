@@ -92,7 +92,19 @@ async def get_db_connection():
     return connection
 
 
-async def create_app_secret():
-    token = token_hex(18)  
-    return token 
+async def create_app_token(app_name):
+    app_token = secrets.token_hex(18)
+    try: 
+        connection = sqlite3.connect('lichen.db')
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO apps (appname, apikey) VALUES (?, ?)",
+                (f"{app_name}", f"{app_token}")
+                )
+        connection.commit()
+    except Exception as e:
+        logger.debug(e)
+        connection.close()
+    finally:
+        connection.close()
+        return app_token
 
