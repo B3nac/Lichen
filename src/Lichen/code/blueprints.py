@@ -169,9 +169,9 @@ async def account():
                 try:
                     pub_address = row[1]
                     decrypt_private_key = no_plaintext.decrypt(
-                    bytes(row[2], encoding='utf8')).decode('utf-8')
+                        bytes(row[2], encoding='utf8')).decode('utf-8')
                     decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                    bytes(row[3], encoding='utf8')).decode('utf-8')
+                        bytes(row[3], encoding='utf8')).decode('utf-8')
                     unlocked_account.append(pub_address)
                     unlocked_account.append(decrypt_private_key)
                     unlocked_account.append(decrypt_mnemonic_phrase)
@@ -251,19 +251,19 @@ async def account_lookup():
             account_list = []
             wei_balance = 0
             connection = await utils.get_db_connection()
-            account = connection.execute(f'SELECT * FROM accounts WHERE id={lookup_account}').fetchone()
-            if account:
+            account_search = connection.execute(f'SELECT * FROM accounts WHERE id={lookup_account}').fetchone()
+            if account_search:
                 try:
-                    pub_address = account[1]
+                    pub_address = account_search[1]
                     decrypt_private_key = no_plaintext.decrypt(
-                        bytes(account[2], encoding='utf8')).decode('utf-8')
+                        bytes(account_search[2], encoding='utf8')).decode('utf-8')
                     decrypt_mnemonic_phrase = no_plaintext.decrypt(
-                        bytes(account[3], encoding='utf8')).decode('utf-8')
+                        bytes(account_search[3], encoding='utf8')).decode('utf-8')
                     wei_balance = await network.eth.get_balance(pub_address)
                     account_list = await utils.populate_public_address_list()
                     connection.close()
                 except IndexError as e:
-                    flash(f"{e}, No account exists with id {account_id}.", 'warning')
+                    flash(f"{e}, No account exists with id {lookup_account}.", 'warning')
                     connection.close()
             else:
                 flash(f"No account exists with id {lookup_account}.", 'warning')
@@ -426,27 +426,26 @@ async def sign_and_send():
     if request.method == 'POST' and unlocked:
         tx_variables = request.json
         nonce = await network.eth.get_transaction_count(tx_variables['from'], 'pending')
-        gas_price = await network.eth.gas_price
         connection = sqlite3.connect('lichen.db')
         api_token_header = request.headers['X-Lichen-Key']
         fetch_app_token = connection.execute(f"SELECT * FROM apps WHERE apikey='{api_token_header}'").fetchone()
         app_token = fetch_app_token[2]
         if api_token_header == app_token:
-            latest_block =  await network.eth.get_block("latest")
+            latest_block = await network.eth.get_block("latest")
             base_fee_per_gas = latest_block.baseFeePerGas
             max_priority_fee_per_gas = network.to_wei(1, 'gwei')
             max_fee_per_gas = (5 * base_fee_per_gas) + max_priority_fee_per_gas
             try:
                 tx = {
-                        'nonce': nonce,
-                        'to': tx_variables['to'],
-                        'value': network.to_wei(tx_variables['value'], 'ether'),
-                        'gas': 21000,
-                        'maxFeePerGas': max_fee_per_gas,
-                        'maxPriorityFeePerGas': max_priority_fee_per_gas,
-                        'chainId': tx_variables['chainId'],
-                        'from': tx_variables['from']
-                    }
+                    'nonce': nonce,
+                    'to': tx_variables['to'],
+                    'value': network.to_wei(tx_variables['value'], 'ether'),
+                    'gas': 21000,
+                    'maxFeePerGas': max_fee_per_gas,
+                    'maxPriorityFeePerGas': max_priority_fee_per_gas,
+                    'chainId': tx_variables['chainId'],
+                    'from': tx_variables['from']
+                }
                 sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
                 sent = await network.eth.send_raw_transaction(sign.rawTransaction)
             except Exception as e:
@@ -454,4 +453,3 @@ async def sign_and_send():
                 connection.close()
         connection.close()
         return "Success!"
-

@@ -8,6 +8,7 @@ __location__ = os.path.expanduser('~')
 accounts_file = "/lichen.db"
 config_file = "/lichen.ini"
 
+
 async def get_pub_address_from_config():
     if os.path.exists(__location__ + config_file):
         default_address = address
@@ -37,23 +38,26 @@ async def save_account_info(pub_address, private_key, mnemonic_phrase):
         cursor = connection.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='accounts';")
         accounts_list = cursor.fetchall()
-        if accounts_list == []:
+        if not accounts_list:
             with open('/usr/lib/Lichen/app/Lichen/schema.sql') as f:
                 connection.executescript(f.read())
-            cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
-                    (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
-                    )
-            connection.commit()
+                cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
+                               (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
+                               )
+                connection.commit()
+                connection.close()
 
         elif accounts_list:
             cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
-                    (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
-                    )
+                           (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
+                           )
             connection.commit()
+            connection.close()
     except Exception as e:
         logger.debug(e)
     finally:
         connection.close()
+
 
 async def populate_public_address_list():
     public_address_list = []
@@ -94,12 +98,12 @@ async def get_db_connection():
 
 async def create_app_token(app_name):
     app_token = secrets.token_hex(18)
-    try: 
+    try:
         connection = sqlite3.connect('lichen.db')
         cursor = connection.cursor()
         cursor.execute("INSERT INTO apps (appname, apikey) VALUES (?, ?)",
-                (f"{app_name}", f"{app_token}")
-                )
+                       (f"{app_name}", f"{app_token}")
+                       )
         connection.commit()
     except Exception as e:
         logger.debug(e)
@@ -107,4 +111,3 @@ async def create_app_token(app_name):
     finally:
         connection.close()
         return app_token
-

@@ -21,13 +21,15 @@ class ServerThread(Thread):
 
 
 class Positron(toga.App):
-    def web_server(self):
+    @staticmethod
+    def web_server():
         print("Starting server...")
         global server
         server = ServerThread(app)
         server.start()
 
-    def cleanup(self, app, **kwargs):
+    @staticmethod
+    def cleanup(app, **kwargs):
         print("Shutting down...")
         global server
         server.shutdown()
