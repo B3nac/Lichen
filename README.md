@@ -56,10 +56,6 @@ Install briefcase and required dependencies.
 
 `pip install briefcase Flask web3 cyptography Flask-WTF toga`
 
-Start app in Dev mode.
-
-`briefcase dev`
-
 Build and run the app.
 
 `briefcase run`
