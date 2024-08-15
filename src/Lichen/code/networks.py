@@ -29,4 +29,3 @@ else:
     ens_mainnet_node = AsyncWeb3(AsyncHTTPProvider(ens_mainnet_address))
     logs = False
     ens_resolver = AsyncENS.from_web3(ens_mainnet_node)
-

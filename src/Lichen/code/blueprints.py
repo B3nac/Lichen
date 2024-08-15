@@ -55,6 +55,35 @@ unlocked: bool = False
 tx_list = []
 
 
+async def get_pub_address_from_config():
+    if os.path.exists(utils.__location__ + utils.config_file):
+        default_address = address
+        if default_address == unlocked_account[0]:
+            return default_address
+        else:
+            return unlocked_account[0]
+    else:
+        default_address = unlocked_account[0]
+        return default_address
+
+
+async def get_ens_name(default_address):
+    try:
+        if ens_mainnet_address is not None:
+            domain = await ens_resolver.name(default_address)
+            if domain is None:
+                domain = "No ENS name associated with this address."
+                return domain
+            if domain:
+                return domain
+        else:
+            domain = "No ENS name associated with this address."
+            return domain
+    except Exception:
+        domain = "No ENS name associated with this address."
+        return domain
+
+
 @index_blueprint.route('/', methods=['GET'])
 async def index():
     if request.method == 'GET':
@@ -68,7 +97,7 @@ async def index():
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         if os.path.exists(utils.__location__ + utils.accounts_file) and unlocked:
             lookup_account_form = LookupAccountForm()
-            default_address: str = await utils.get_pub_address_from_config()
+            default_address: str = await get_pub_address_from_config()
             wei_balance = network.eth.get_balance(default_address)
             account_list = await utils.populate_public_address_list()
             return render_template('account.html', account="unlocked", lookup_account_form=lookup_account_form,
@@ -187,7 +216,7 @@ async def account():
                 connected = await network.is_connected()
                 if connected:
                     default_address: str = unlocked_account[0]
-                    ens_name: str = await utils.get_ens_name(default_address)
+                    ens_name: str = await get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
                     account_balance = await round(network.from_wei(wei_balance, 'ether'), 2)
                 else:
@@ -218,7 +247,7 @@ async def account():
             try:
                 connected = await network.is_connected()
                 if connected:
-                    ens_name: str = await utils.get_ens_name(default_address)
+                    ens_name: str = await get_ens_name(default_address)
                     wei_balance = await network.eth.get_balance(default_address)
             except Exception as e:
                 ens_name: str = "None"
@@ -313,7 +342,7 @@ async def send_verify_transaction():
         try:
             to_account = request.form['to_public_address']
             amount = request.form['amount_of_ether']
-            default_address: str = await utils.get_pub_address_from_config()
+            default_address: str = await get_pub_address_from_config()
             gas_price = await network.eth.gas_price
             send_verify_form = SendVerifyForm()
             if ".eth" in to_account:
@@ -346,7 +375,7 @@ async def send_verify_transaction():
 async def send_transaction():
     if request.method == 'POST' and unlocked:
         lookup_account_form = LookupAccountForm()
-        default_address: str = await utils.get_pub_address_from_config()
+        default_address: str = await get_pub_address_from_config()
         wei_balance = network.eth.get_balance(default_address)
         account_list = await utils.populate_public_address_list()
         try:

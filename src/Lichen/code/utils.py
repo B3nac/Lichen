@@ -9,18 +9,6 @@ accounts_file = "/lichen.db"
 config_file = "/lichen.ini"
 
 
-async def get_pub_address_from_config():
-    if os.path.exists(__location__ + config_file):
-        default_address = address
-        if default_address == unlocked_account[0]:
-            return default_address
-        else:
-            return unlocked_account[0]
-    else:
-        default_address = unlocked_account[0]
-        return default_address
-
-
 async def create_account_callback(new_eth_account, wallet_key, mnemonic):
     if not os.path.exists(__location__ + accounts_file):
         no_plaintext = Fernet(wallet_key)
@@ -68,26 +56,9 @@ async def populate_public_address_list():
             public_address_list.append(account_id[1])
         except IndexError as e:
             connection.close()
-            flash(f"{e}, No account exists with id {account_id}.", 'warning')
+            logger.debug(f"{e}, No account exists with id {account_id}.", 'warning')
     connection.close()
     return public_address_list
-
-
-async def get_ens_name(default_address):
-    try:
-        if ens_mainnet_address is not None:
-            domain = await ens_resolver.name(default_address)
-            if domain is None:
-                domain = "No ENS name associated with this address."
-                return domain
-            if domain:
-                return domain
-        else:
-            domain = "No ENS name associated with this address."
-            return domain
-    except Exception:
-        domain = "No ENS name associated with this address."
-        return domain
 
 
 async def get_db_connection():
