@@ -39,7 +39,7 @@ async def save_account_info(pub_address, private_key, mnemonic_phrase):
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='accounts';")
         accounts_list = cursor.fetchall()
         if not accounts_list:
-            with open('/usr/lib/Lichen/app/Lichen/schema.sql') as f:
+            with open('/usr/lib/Lichen/app/Lichen/accounts_schema.sql') as f:
                 connection.executescript(f.read())
                 cursor.execute("INSERT INTO accounts (pubaddress, privatekey, mnemonicphrase) VALUES (?, ?, ?)",
                                (f"{pub_address}", f"{decode_private_key}", f"{decode_mnemonic}")
@@ -101,10 +101,15 @@ async def create_app_token(app_name):
     try:
         connection = sqlite3.connect('lichen.db')
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO apps (appname, apikey) VALUES (?, ?)",
-                       (f"{app_name}", f"{app_token}")
-                       )
-        connection.commit()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='apps';")
+        apps_list = cursor.fetchall()
+        if not apps_list:
+            with open('/usr/lib/Lichen/app/Lichen/apps_schema.sql') as f:
+                connection.executescript(f.read())
+                cursor.execute("INSERT INTO apps (appname, apikey) VALUES (?, ?)",
+                               (f"{app_name}", f"{app_token}")
+                               )
+                connection.commit()
     except Exception as e:
         logger.debug(e)
         connection.close()

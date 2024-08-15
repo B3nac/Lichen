@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 import sqlite3
-from web3.exceptions import TransactionNotFound
-from requests.exceptions import MissingSchema
 import eth_utils
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
@@ -181,7 +179,7 @@ async def account():
             global unlocked
             unlocked = True
             account_list = await utils.populate_public_address_list()
-        except (Exception) as e:
+        except Exception as e:
             flash(f"Invalid account key. {e}", 'warning')
             return render_template('unlock.html', account="current", unlock_account_form=unlock_account_form, year=year)
         else:
@@ -391,6 +389,7 @@ def delete_accounts():
 @settings_blueprint.route('/settings', methods=['GET', 'POST'])
 def settings():
     settings_form = SettingsForm()
+    unlock_account_form = UnlockAccountForm()
     if request.method == 'GET':
         if os.path.exists(utils.__location__ + utils.accounts_file):
             if unlocked:
@@ -412,7 +411,7 @@ def settings():
             config['DEFAULT']['network'] = request.form['network']
             config['DEFAULT']['default_address'] = request.form['default_address']
             config['DEFAULT']['ens_mainnet_node'] = request.form['ens_mainnet_node']
-            with open(utils.__location__ + config_file, 'w') as lichen_config:
+            with open(utils.__location__ + utils.config_file, 'w') as lichen_config:
                 config.write(lichen_config)
                 flash("Settings changed successfully!", 'success')
             return render_template('settings.html', account="unlocked", settings_form=settings_form, year=year)
@@ -447,7 +446,7 @@ async def sign_and_send():
                     'from': tx_variables['from']
                 }
                 sign = network.eth.account.sign_transaction(tx, unlocked_account[1])
-                sent = await network.eth.send_raw_transaction(sign.rawTransaction)
+                await network.eth.send_raw_transaction(sign.rawTransaction)
             except Exception as e:
                 logger.debug(e)
                 connection.close()

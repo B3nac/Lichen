@@ -4,8 +4,3 @@ CREATE TABLE accounts (
     privatekey TEXT NOT NULL,
     mnemonicphrase TEXT NOT NULL
 );
-CREATE TABLE apps (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    appname TEXT NOT NULL,
-    apikey TEXT NOT NULL
-);
