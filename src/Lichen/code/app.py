@@ -44,3 +44,4 @@ def page_not_found():
 @app.errorhandler(405)
 def method_not_allowed():
     return render_template('405.html'), 405
+

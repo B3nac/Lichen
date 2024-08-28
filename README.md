@@ -54,7 +54,7 @@ Once the venv is created source it in order to install the dependencies to that 
 
 Install briefcase and required dependencies.
 
-`pip install briefcase Flask web3 cyptography Flask-WTF toga`
+`pip install briefcase Flask web3 cryptography Flask-WTF toga`
 
 Build and run the app.
 

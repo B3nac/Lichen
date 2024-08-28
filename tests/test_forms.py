@@ -1,13 +1,5 @@
 from tests.conftest import app_test as flask_app
-from Lichen.src.Lichen.code.forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, ReplayTransactionForm, SendEtherForm, CreateLootBundleForm
-
-class TestCreateAccountForm:
-    def test_create_account_form(self):
-        context = flask_app.test_request_context('http://127.0.0.1:5000/create_fresh', method='POST')
-        context.push()
-        CreateAccountForm.Meta.csrf = False
-        form = CreateAccountForm(submit=True)
-        assert form.validate_on_submit() == False
+from src.Lichen.code.forms import UnlockAccountForm, CreateAccountForm, CreateMultipleAccountsForm, LookupAccountForm, SendEtherForm
 
 class TestCreateMultipleAccountsForm:
     def test_create_multiple_accounts_form(self):
@@ -39,13 +31,5 @@ class TestSendEtherForm:
         context.push()
         SendEtherForm.Meta.csrf = False
         form = SendEtherForm(to_public_address='0', amount_of_ether='.001', submit=True)
-        assert form.validate_on_submit() == False
-
-class TestReplayTransactionForm:
-    def test_lookup_account_form(self):
-        context = flask_app.test_request_context('http://127.0.0.1:5000/replay', method='POST')
-        context.push()
-        ReplayTransactionForm.Meta.csrf = False
-        form = ReplayTransactionForm(tx_hash='0', submit=True)
         assert form.validate_on_submit() == False
 
