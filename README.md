@@ -70,10 +70,10 @@ Example `config.ini` file:
 
 ```bash
 [DEFAULT]
-
-network = https://goerli-rollup.arbitrum.io/rpc
+network = your_main_node_url
 default_address = your_public_ethereum_address
 ens_mainnet_node = your_mainnet_node_url
+logs = false
 ```
 
 ### Preview screenshot

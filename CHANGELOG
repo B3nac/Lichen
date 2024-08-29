@@ -42,3 +42,8 @@
 ## 0.2.7
 
 * Changed name to Lichen and updated description
+
+## 0.2.8
+
+* Added api key local autosigner feature
+* Fixed several bugs and tests
